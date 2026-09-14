@@ -1,789 +1,1113 @@
-# Instagram OSINT — Evidence Model
+# INSTOSINT Evidence Model
 
-This document defines how the investigation agent should represent observations, relationships, hypotheses, confidence, and contradictions.
+This document defines the canonical evidence model used by INSTOSINT.
 
-The purpose of this model is to prevent the agent from turning weak clues into confident claims.
+All other INSTOSINT reference documents should follow these definitions.
+
+The evidence model exists to prevent:
+
+- fabricated observations
+- unsupported graph relationships
+- accidental overclaiming
+- double-counting evidence
+- premature conclusions
+- identity overreach
+- confusion between observation and inference
 
 ---
 
 # 1. Fundamental Rule
 
-Separate:
+> Evidence must originate from an actually retrieved source.
 
-```text
-WHAT WAS OBSERVED
-        ↓
-WHAT WAS DERIVED
-        ↓
-WHAT IS INFERRED
-        ↓
-WHAT IS HYPOTHESIZED
-        ↓
-WHAT IS SUPPORTED
-```
+No source:
 
-Never collapse these categories.
+    → No observation.
 
-An investigation should be explainable backward:
+No observation:
 
-```text
-Conclusion
-    ↓
-Supporting hypothesis
-    ↓
-Evidence
-    ↓
-Original observation
-```
+    → No derived relationship.
 
-If the agent cannot explain why it believes something, the conclusion should not be considered reliable.
+No supporting evidence:
+
+    → No evidence-backed hypothesis.
+
+The agent must never fill missing information with assumptions.
 
 ---
 
-# 2. Evidence Object
+# 2. Evidence Pipeline
 
-Represent every meaningful observation conceptually as:
+INSTOSINT uses the following pipeline:
 
-```text
-Evidence
-├── id
-├── source
-├── subject
-├── object
-├── relationship
-├── observation
-├── timestamp
-├── evidence_type
-├── reliability
-├── independence_group
-└── notes
-```
+    SOURCE
+      ↓
+    OBSERVATION
+      ↓
+    DERIVED RELATIONSHIP
+      ↓
+    INFERENCE
+      ↓
+    HYPOTHESIS
+      ↓
+    SUPPORTED / CONTRADICTED / UNRESOLVED
+      ↓
+    CONCLUSION
 
-Example:
+Each level has a different meaning.
 
-```text
-subject: @lily
-object: @hv
-
-relationship: follows
-
-observation:
-"Lily's publicly observable following list contains @hv."
-
-evidence_type:
-DIRECT_OBSERVATION
-
-reliability:
-HIGH
-```
-
-The exact storage implementation may vary.
-
-The conceptual distinction must remain.
+Do not collapse multiple levels into one.
 
 ---
 
-# 3. Evidence Types
+# 3. Source
 
-Use the following categories.
-
-## DIRECT_OBSERVATION
-
-Something directly visible.
+A source is the actual data origin from which an observation was obtained.
 
 Examples:
 
-* Account A follows Account B.
-* Account A mentions Account B.
-* Account B appears in a public post.
-* A recommendation visibly displays Account B.
-* A location is explicitly displayed.
+- public Instagram profile
+- public Instagram post
+- public Instagram comment
+- public follower surface
+- public following surface
+- public tagged-post surface
+- public recommendation surface
+- publicly available image
+- other authorized Instagram data source
 
-This is the strongest type for establishing that an observable event occurred.
+A source must represent something the agent actually accessed.
+
+A hypothetical source does not count.
+
+---
+
+# 4. Source Record
+
+Conceptually, a source record may contain:
+
+    SOURCE-001
+
+    type:
+        instagram_profile
+
+    target:
+        @example
+
+    retrieved_at:
+        timestamp if available
+
+    access_status:
+        AVAILABLE
+
+    data:
+        actual retrieved data
+
+The exact storage format may vary by implementation.
+
+The important requirement is that observations can be traced back to
+their source.
+
+---
+
+# 5. Observation
+
+An observation is a statement directly supported by retrieved source data.
+
+Examples:
+
+    @target publicly follows @account_x.
+
+    @target has a public post containing a visible location tag.
+
+    @target commented on a public post by @account_x.
+
+    @account_x and @target appear together in a public image.
+
+Observations must describe what was observed, not what it supposedly means.
+
+---
+
+# 6. Observation Requirements
+
+Every factual observation should contain:
+
+    id
+    source
+    subject
+    object/property
+    observation
+    type
+    reliability
+
+When useful, also include:
+
+    timestamp
+    source location
+    independence group
+    notes
+    related evidence IDs
+
+Example:
+
+    ID:
+        OBS-001
+
+    Source:
+        SOURCE-001
+
+    Subject:
+        @target
+
+    Relationship:
+        FOLLOWS
+
+    Object:
+        @account_x
+
+    Observation:
+        @target publicly follows @account_x.
+
+    Type:
+        DIRECT_OBSERVATION
+
+    Reliability:
+        HIGH
+
+---
+
+# 7. Evidence Types
+
+Use the following canonical evidence types.
+
+## DIRECT_OBSERVATION
+
+Information directly visible in the retrieved source.
+
+Example:
+
+    A profile's visible following list contains @account_x.
 
 ---
 
 ## DERIVED_OBSERVATION
 
-A fact calculated from direct observations.
+Information calculated or constructed from multiple direct observations.
 
-Examples:
+Example:
 
-* A and B share 12 followers.
-* Account X is a bridge between two clusters.
-* Person Y appears in 5 investigated posts.
-* Account A and B have repeated interaction.
+    @target and @account_x share several publicly visible followers.
 
-Derived observations should preserve the observations from which they were calculated.
+The underlying follower observations must exist.
 
 ---
 
 ## VISUAL_OBSERVATION
 
-Information extracted from an image.
+A factual observation obtained from an image.
 
-Examples:
+Example:
 
-* Two people appear together.
-* A sign contains a visible name.
-* A recognizable building appears.
-* A particular object appears repeatedly.
-* Two images have similar visual context.
+    @target appears in a public image together with another visible person.
 
-Visual observations should describe what is visible before interpreting what it means.
-
-Bad:
-
-```text
-"This is definitely Harshvardhan."
-```
-
-Better:
-
-```text
-"A person with visually similar characteristics appears in both images."
-```
+Do not automatically infer identity or relationship from this observation.
 
 ---
 
 ## TEXTUAL_OBSERVATION
 
-Information extracted from:
+A factual observation derived from visible text.
 
-* bio
-* caption
-* comment
-* visible image text
-* username
-* display name
-* hashtag
-* mention
+Example:
 
-The agent should preserve the original context where possible.
+    A public caption contains the name of Event X.
+
+The text must actually be present in the retrieved source.
 
 ---
 
 ## INFERENCE
 
-A conclusion derived from one or more observations.
+An interpretation derived from one or more observations.
 
 Example:
 
-```text
-Observation:
-A and B repeatedly interact.
+    @target and @account_x show a recurring public interaction pattern.
 
-Inference:
-A and B have a recurring public interaction pattern.
-```
-
-An inference is not automatically a fact.
+Inference is not direct observation.
 
 ---
 
 ## HYPOTHESIS
 
-A possible explanation for observed evidence.
+A possible explanation that is currently being investigated.
 
 Example:
 
-```text
-Hypothesis:
-A and B may belong to the same social group.
-```
+    @account_x may represent a particularly relevant recurring
+    connection for @target.
 
-Hypotheses must remain explicitly labeled.
+A hypothesis must not be presented as established fact.
 
 ---
 
-# 4. Relationship Strength
+## DATA_AVAILABILITY
 
-Do not use a single universal confidence score for every relationship.
-
-Instead consider the nature of the relationship.
-
-Useful qualitative levels:
-
-### OBSERVED
-
-The relationship itself is directly visible.
+A record describing whether required data was available.
 
 Example:
 
-```text
-A follows B
-```
+    The public following surface could not be retrieved.
 
-### WEAK
-
-There is limited supporting evidence.
-
-Example:
-
-```text
-A and B share a small number of connections.
-```
-
-### MODERATE
-
-Multiple relevant observations support the relationship.
-
-Example:
-
-```text
-A follows B
-A repeatedly interacts with B
-A and B appear in related public content
-```
-
-### STRONG
-
-Multiple relatively independent observations support the same interpretation.
-
-Example:
-
-```text
-Explicit interaction
-+
-Repeated co-occurrence
-+
-Shared event
-+
-Additional independent contextual evidence
-```
-
-### UNKNOWN
-
-There is insufficient evidence to determine the relationship.
+This is not evidence that the following relationship does not exist.
 
 ---
 
-# 5. Do Not Treat Confidence as Probability
+# 8. Evidence Status
 
-Unless the system has been statistically calibrated using a suitable dataset, avoid statements such as:
+Evidence records may have statuses such as:
 
-```text
-87% chance they are friends.
-```
+    OBSERVED
+    DERIVED
+    INFERRED
+    HYPOTHETICAL
+    CONTRADICTED
+    UNRESOLVED
 
-A number can create false precision.
-
-Prefer:
-
-```text
-Evidence strength: Moderate
-```
-
-or:
-
-```text
-Confidence: Low
-```
-
-If numerical scoring is eventually implemented, it must be clearly described as an internal prioritization score rather than a literal probability.
+These describe the epistemic status of the record.
 
 ---
 
-# 6. Evidence Independence
+# 9. Reliability
 
-This is critical.
+Reliability describes how trustworthy the underlying observation is.
 
-Multiple observations may originate from the same underlying event.
+Use:
 
-Example:
+    LOW
+    MODERATE
+    HIGH
+    UNKNOWN
 
-```text
-A likes B's post
-A comments on B's post
-A replies to B's comment
-```
-
-These may represent one interaction episode rather than three independent pieces of evidence.
-
-Therefore maintain an:
-
-```text
-independence_group
-```
-
-Example:
-
-```text
-Evidence 1 → Event_42
-Evidence 2 → Event_42
-Evidence 3 → Event_42
-```
-
-The agent should avoid treating these as three completely independent confirmations.
-
----
-
-# 7. Corroboration
-
-Corroboration means different observations support the same hypothesis.
-
-Strong corroboration generally comes from different evidence categories.
-
-Example:
-
-```text
-NETWORK
-A follows B
-
-CONTENT
-A and B appear in related public posts
-
-TEMPORAL
-Both appear at the same public event
-
-VISUAL
-Recurring contextual similarity
-```
-
-This is generally more useful than repeatedly observing the same type of interaction.
-
----
-
-# 8. Contradictory Evidence
-
-Every important hypothesis must allow contradictory evidence.
-
-Represent:
-
-```text
-Hypothesis
-├── supporting evidence
-└── contradicting evidence
-```
-
-Example:
-
-```text
-Hypothesis:
-Account A and Account B may represent the same entity.
-
-Supporting:
-- similar alias
-- similar public profile information
-- overlapping network
-
-Contradicting:
-- incompatible public location
-- different age/context information
-- independent evidence connecting each account to different entities
-```
-
-The final assessment must consider both sides.
-
----
-
-# 9. Entity Resolution
-
-When multiple accounts may represent the same person/entity, do not immediately merge them.
-
-Create a candidate relationship:
-
-```text
-ACCOUNT_A
-    |
-    | possible_same_entity
-    ↓
-ACCOUNT_B
-```
-
-Then collect evidence.
-
-Potential evidence categories:
-
-* username similarity
-* display-name similarity
-* alias similarity
-* profile-image similarity
-* bio/context similarity
-* social-graph overlap
-* recurring visual context
-* explicit public linkage
-* temporal consistency
-* contradictory evidence
-
----
-
-# 10. Entity Resolution Example
-
-Suppose:
-
-```text
-@hv
-display name: HV
-```
-
-and another candidate:
-
-```text
-@harshvardhanm
-display name: Harshvardhan Mishra
-```
-
-Possible observations:
-
-```text
-O1:
-"HV" is compatible with the candidate's name.
-
-O2:
-The public profile imagery appears visually consistent.
-
-O3:
-The two accounts share several relevant connections.
-
-O4:
-The target interacts with both.
-
-O5:
-There is contradictory information suggesting different entities.
-```
-
-The agent should conclude something like:
-
-```text
-Possible same-entity relationship.
-
-Evidence:
-- alias compatibility
-- network overlap
-- contextual consistency
-
-Counter-evidence:
-- none currently observed
-
-Assessment:
-Moderate support
-
-Further useful investigation:
-Look for explicit public linkage or additional independent context.
-```
-
-It must NOT automatically state:
-
-```text
-@hv = Harshvardhan Mishra
-```
-
-unless sufficiently strong evidence exists.
-
----
-
-# 11. Relationship Classification
-
-Different relationships require different evidence.
-
-Possible relationship categories include:
-
-```text
-FOLLOWS
-INTERACTS_WITH
-MENTIONS
-TAGGED_WITH
-APPEARS_WITH
-SHARES_CONTEXT_WITH
-SHARES_NETWORK_WITH
-POSSIBLE_ALIAS
-POSSIBLE_SAME_ENTITY
-POSSIBLE_ASSOCIATION
-```
-
-Avoid inventing stronger semantic relationships from weaker observations.
+Reliability is NOT the same thing as hypothesis confidence.
 
 For example:
 
-```text
-A follows B
-```
+    A visible public follow relationship
 
-does not automatically become:
+may have:
 
-```text
-A is B's friend
-```
+    Reliability: HIGH
+
+while the hypothesis:
+
+    "This account is especially important to the target"
+
+may still have:
+
+    Confidence: LOW
+
+---
+
+# 10. Relationship Strength
+
+Relationship strength describes the support for a graph relationship.
+
+Use:
+
+    UNKNOWN
+    WEAK
+    MODERATE
+    STRONG
+
+Strength should consider:
+
+- directness
+- source quality
+- corroboration
+- recurrence
+- specificity
+- independence
+- contradictions
+
+Do not assign strength merely because the relationship sounds plausible.
+
+---
+
+# 11. Evidence Independence
+
+Evidence independence is critical.
+
+Multiple observations can originate from the same underlying event.
+
+Example:
+
+    Target appears in five photographs from Event X.
+
+These five observations may all represent:
+
+    ONE_EVENT_CONTEXT
+
+rather than five independent confirmations.
 
 Similarly:
 
-```text
-A and B appear in the same image
-```
+    Target likes ten posts from Account A.
 
-does not automatically become:
-
-```text
-A and B are romantically involved
-```
+This is useful evidence of recurring interaction, but the ten likes should
+not automatically be treated as ten independent confirmations of every
+hypothesis involving Account A.
 
 ---
 
-# 12. Hypothesis Lifecycle
+# 12. Independence Groups
 
-A hypothesis should move through explicit stages.
+When evidence is strongly correlated, assign an independence group.
 
-```text
-UNPROPOSED
-    ↓
-POSSIBLE
-    ↓
-INVESTIGATING
-    ↓
-SUPPORTED
-    ↓
-STRONGLY_SUPPORTED
-```
+Example:
 
-It may also move to:
+    OBS-021
+    OBS-022
+    OBS-023
 
-```text
-CONTRADICTED
-```
+all originate from:
+
+    EVENT-X
+
+Therefore:
+
+    independence_group: EVENT-X
+
+Another group might be:
+
+    INTERACTION-PATTERN-ACCOUNT-A
+
+The investigation should avoid artificially increasing confidence by
+counting correlated observations multiple times.
+
+---
+
+# 13. Corroboration
+
+Strong conclusions should preferably have evidence from different
+categories.
+
+For example:
+
+    public follow
+        +
+    repeated interaction
+        +
+    shared event
+        +
+    recurring visual context
+
+is generally more informative than:
+
+    many likes
+
+alone.
+
+Cross-category corroboration is valuable because it reduces dependence
+on one type of signal.
+
+---
+
+# 14. Evidence IDs
+
+Every actual evidence record receives a unique identifier.
+
+Recommended format:
+
+    OBS-001
+    OBS-002
+    OBS-003
+
+for observations.
+
+Other prefixes may be used for other record types:
+
+    REL-001
+    HYP-001
+    LEAD-001
+    SRC-001
+
+Do not create IDs for evidence that does not exist.
+
+Do not pre-populate fake observations merely to make a table look complete.
+
+---
+
+# 15. No Placeholder Values
+
+The following are forbidden as factual values:
+
+    Account A
+    Account B
+    Account C
+    Person X
+    Event X
+    [Number]
+    [username]
+    [bio text]
+    [display name]
+
+unless the surrounding section is explicitly marked:
+
+    [SYNTHETIC EXAMPLE]
+
+For real investigation output, missing values must be represented as:
+
+    UNKNOWN
 
 or:
 
-```text
-UNRESOLVED
-```
-
-Example:
-
-```text
-Possible:
-"Account B may be meaningfully connected to Target."
-
-↓
-
-Investigating:
-Collect network, interaction, content and visual evidence.
-
-↓
-
-Supported:
-Multiple independent observations support the relationship.
-
-↓
-
-Strongly supported:
-Additional independent evidence confirms the same pattern.
-```
-
-Do not skip directly from POSSIBLE to STRONGLY_SUPPORTED.
+    UNKNOWN — DATA NOT AVAILABLE
 
 ---
 
-# 13. Alternative Hypotheses
+# 16. Evidence Provenance
 
-For important observations, consider multiple explanations.
+Every evidence record should answer:
+
+    Where did this come from?
+
+    What exactly was observed?
+
+    When was it observed?
+
+    What entity does it concern?
+
+    What relationship/property does it establish?
+
+    How reliable is it?
+
+If these questions cannot be answered, the claim should not be treated
+as verified evidence.
+
+---
+
+# 17. Evidence Object
+
+A conceptual evidence object:
+
+    {
+        id,
+        source,
+        subject,
+        object,
+        relationship,
+        observation,
+        type,
+        reliability,
+        independence_group,
+        timestamp,
+        notes
+    }
+
+Not every field must be populated for every evidence type.
+
+However:
+
+    id
+    source
+    observation
+    type
+
+should normally be present for factual observations.
+
+---
+
+# 18. Direct Observation vs Inference
+
+Consider:
+
+    Source:
+    Public Instagram post.
+
+    Observation:
+    @target and @account_x appear together in the image.
+
+This is a:
+
+    VISUAL_OBSERVATION
+
+Possible inference:
+
+    The two accounts have a public association.
+
+This is:
+
+    INFERENCE
+
+Possible hypothesis:
+
+    Their recurring public association may indicate a meaningful
+    connection.
+
+This is:
+
+    HYPOTHESIS
+
+Do not report the hypothesis as though it were the observation.
+
+---
+
+# 19. Relationship Evidence
+
+Graph relationships must reference evidence.
 
 Example:
 
-```text
-Observation:
-Account B repeatedly appears in recommendations around Target.
-```
+    REL-001
+
+    Subject:
+        @target
+
+    Relationship:
+        FOLLOWS
+
+    Object:
+        @account_x
+
+    Strength:
+        STRONG
+
+    Supporting evidence:
+        OBS-001
+
+The graph edge should not exist independently of its supporting evidence
+unless explicitly marked as hypothetical.
+
+---
+
+# 20. Hypothesis Evidence
+
+A hypothesis should contain:
+
+    id
+    statement
+    status
+    supporting evidence
+    contradicting evidence
+    alternative explanations
+    notes
+
+Example:
+
+    HYP-001
+
+    Statement:
+        @target and @account_x have a recurring public association.
+
+    Status:
+        INVESTIGATING
+
+    Supporting:
+        OBS-001
+        OBS-008
+        OBS-014
+
+    Contradicting:
+        OBS-021
+
+    Alternatives:
+        Shared event/community may explain the observed pattern.
+
+---
+
+# 21. Hypothesis Status
+
+Use the following lifecycle:
+
+    UNPROPOSED
+        ↓
+    POSSIBLE
+        ↓
+    INVESTIGATING
+        ↓
+    SUPPORTED
+        ↓
+    STRONGLY_SUPPORTED
+
+Alternative terminal states:
+
+    CONTRADICTED
+    UNRESOLVED
+
+A hypothesis should not become SUPPORTED merely because multiple similar
+observations exist.
+
+---
+
+# 22. Supporting Evidence
+
+Evidence supports a hypothesis when it makes the hypothesis more plausible
+than it was before.
+
+Supporting evidence should be evaluated for:
+
+- directness
+- reliability
+- independence
+- specificity
+- consistency
+- alternative explanations
+
+---
+
+# 23. Contradicting Evidence
+
+Evidence is contradictory when it makes the hypothesis less plausible.
+
+Examples:
+
+- evidence suggesting a different explanation
+- evidence showing an apparent association was isolated
+- evidence showing the visual match is likely incorrect
+- evidence showing the connection exists only within a common event
+- evidence inconsistent with the proposed interpretation
+
+Contradictory evidence must remain visible in the final reasoning.
+
+Do not silently discard it.
+
+---
+
+# 24. Alternative Explanations
+
+When evidence supports multiple interpretations, record alternatives.
+
+Example:
+
+    Observation:
+    Two accounts repeatedly appear at Event X.
 
 Possible explanations:
 
-```text
-H1:
-Meaningful network overlap.
+    H1:
+    They have a recurring personal association.
 
-H2:
-Shared broader community.
+    H2:
+    They belong to the same public community.
 
-H3:
-Shared interaction signals.
+    H3:
+    They repeatedly attend the same event series.
 
-H4:
-Recommendation algorithm behavior unrelated to a meaningful relationship.
-
-H5:
-Coincidental recommendation.
-```
-
-The agent should seek observations that distinguish these possibilities.
-
-This prevents confirmation bias.
+The investigation should seek evidence that distinguishes these hypotheses.
 
 ---
 
-# 14. Information Gain
+# 25. Information Gain
 
-When choosing the next investigation step, prefer actions that could distinguish between competing hypotheses.
+Evidence should be evaluated not only by strength but also by usefulness.
+
+An observation can be true but low-value.
+
+For example:
+
+    Another like from Account A
+
+may provide little new information if many similar likes already exist.
+
+A new independent observation that distinguishes competing hypotheses may
+be significantly more valuable.
+
+The investigation should prioritize evidence that reduces uncertainty.
+
+---
+
+# 26. Entity Resolution
+
+Entity resolution concerns whether two observed entities may represent
+the same real-world entity.
+
+Possible relationship:
+
+    POSSIBLE_SAME_ENTITY
+
+This should remain uncertain until adequately supported.
+
+Potential signals:
+
+- consistent public identity information
+- recurring public context
+- shared public links
+- recurring visual context
+- compatible publicly observable activity
+- independent corroboration
+
+Weak similarity alone does not establish identity.
+
+---
+
+# 27. Entity Resolution States
+
+Possible states:
+
+    UNKNOWN
+    POSSIBLE
+    LIKELY
+    RESOLVED
+    CONTRADICTED
+    UNRESOLVED
+
+"RESOLVED" should only be used when the available evidence justifies
+treating the entities as the same for the investigation.
+
+---
+
+# 28. Visual Evidence
+
+Visual evidence should contain a distinction between:
+
+    WHAT IS VISIBLE
+
+and:
+
+    WHAT IT MAY MEAN
 
 Example:
 
-```text
-H1:
-A and B belong to the same community.
+    Visual observation:
+    The same visually distinctive person appears in two public posts.
 
-H2:
-A and B are unrelated.
+Possible inference:
+    The person may be a recurring participant in the target's public
+    activity.
 
-Useful next evidence:
-Look for independent public community/event connections.
-```
+Identity claim:
+    "This is definitely Person X."
 
-A low-value action would be:
-
-```text
-Check the same weak signal repeatedly.
-```
-
-A high-value action would be:
-
-```text
-Find a different evidence category that could support or contradict H1.
-```
+The final claim requires additional evidence.
 
 ---
 
-# 15. Evidence Graph
+# 29. Images and Sensitive Conclusions
 
-Conceptually maintain:
+Images should not be used alone to establish sensitive personal claims.
 
-```text
-                    ┌───────────────┐
-                    │   Target A    │
-                    └───────┬───────┘
-                            │
-                         follows
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │   Account B   │
-                    └───────┬───────┘
-                            │
-                      appears_with
-                            │
-                            ▼
-                    ┌───────────────┐
-                    │   Account C   │
-                    └───────────────┘
-```
+Do not infer with certainty from appearance alone:
 
-Every edge should have evidence attached.
+- private identity
+- sensitive personal characteristics
+- private relationships
+- motives
+- private activities
+- exact home location
+
+Visual observations should remain grounded in what is actually visible.
+
+---
+
+# 30. Recommendation Evidence
+
+Recommendation observations should have their own provenance.
 
 Example:
 
-```text
-Target A
-   |
-   | follows
-   | evidence: E001
-   ↓
-Account B
-```
+    OBS-030
 
-The graph should distinguish:
+    Source:
+        Recommendation surface
 
-```text
-OBSERVED EDGE
-```
+    Subject:
+        @target
 
-from:
+    Object:
+        @account_x
 
-```text
-INFERRED EDGE
-```
+    Relationship:
+        RECOMMENDED_WITH
+
+    Observation:
+        @account_x appeared in the recommendation context observed
+        while investigating @target.
+
+    Type:
+        DIRECT_OBSERVATION
+
+    Reliability:
+        MODERATE
+
+The interpretation must remain limited.
+
+Recommendation:
+
+    ≠ follow
+
+    ≠ mutual connection
+
+    ≠ known relationship
+
+    ≠ proof of association
 
 ---
 
-# 16. Evidence Ledger
+# 31. Unknown Data
 
-Maintain an evidence ledger for important investigations.
+If data cannot be retrieved:
+
+    DATA_AVAILABILITY
+
+should be used where appropriate.
 
 Example:
 
-```text
-E001
-Observation:
-Target follows Account B.
+    DATA-001
 
-Type:
-DIRECT_OBSERVATION
+    Source:
+        Following surface
 
-Strength:
-High for the fact that the follow exists.
+    Status:
+        UNAVAILABLE
 
-Meaning:
-Limited.
+    Observation:
+        The following list could not be retrieved from the available
+        authorized source.
 
----
+This must NOT become:
 
-E002
-Observation:
-Target repeatedly comments on Account B's public posts.
+    "Target does not follow Account X."
 
-Type:
-DIRECT_OBSERVATION
+The correct state is:
 
-Strength:
-Moderate.
-
-Meaning:
-Recurring public interaction.
+    UNKNOWN
 
 ---
 
-E003
-Observation:
-Account B and Target appear in the same public event context.
+# 32. Missing Evidence
 
-Type:
-VISUAL_OBSERVATION
+Missing evidence should never be silently converted into negative evidence.
 
-Strength:
-Moderate.
+Bad:
 
-Meaning:
-Possible shared event/context.
+    No public interaction was retrieved,
+    therefore the accounts do not interact.
 
----
+Good:
 
-H001
-Hypothesis:
-Target and B have a meaningful social association.
+    No public interaction was identified in the available retrieved
+    data.
 
-Supporting:
-E001
-E002
-E003
+Better:
 
-Contradicting:
-None currently observed.
-
-Assessment:
-Moderate support.
-```
-
-This ledger makes the investigation auditable.
+    No public interaction was identified in the retrieved data;
+    this does not establish that no interaction exists.
 
 ---
 
-# 17. Stop Conditions
+# 33. Evidence Quality
 
-Do not investigate indefinitely.
+Evidence quality should consider:
 
-Stop or pause when:
+    Source reliability
+    Directness
+    Specificity
+    Independence
+    Recurrence
+    Corroboration
+    Temporal relevance
+    Contradiction
 
-* additional evidence is repetitive
-* new observations provide little information
-* the remaining uncertainty cannot be resolved from observable information
-* the investigation begins relying primarily on speculation
-* the evidence graph has stabilized
-* a hypothesis has sufficient evidence for the intended objective
+A useful conceptual model is:
 
-Report remaining uncertainty.
+    Evidence Quality
+        =
+    Source Quality
+        +
+    Directness
+        +
+    Independence
+        +
+    Specificity
+        +
+    Corroboration
+        -
+    Contradiction
+        -
+    Ambiguity
+
+This is a reasoning framework, not a mathematical scoring formula.
+
+Do not invent numerical probabilities unless the system has a properly
+calibrated statistical model.
 
 ---
 
-# 18. Final Rule
+# 34. Confidence Language
 
-The strongest investigation is not the one that produces the most relationships.
+Use qualitative confidence:
 
-It is the one that produces the most **well-supported relationships while clearly separating observation from interpretation**.
+    LOW
+    MODERATE
+    HIGH
+    VERY HIGH
 
+Avoid invented percentages such as:
+
+    87% likely
+
+unless the system has a validated basis for calculating that probability.
+
+Prefer:
+
+    "Moderate confidence"
+
+over:
+
+    "73% confidence"
+
+when no calibrated probability model exists.
+
+---
+
+# 35. Evidence Ledger
+
+The evidence ledger should allow the investigator to answer:
+
+    What did we observe?
+
+    Where did we observe it?
+
+    What relationship did it create?
+
+    Which hypotheses does it support?
+
+    Which hypotheses does it contradict?
+
+    Is the evidence independent?
+
+Conceptual structure:
+
+    | ID | Source | Subject | Object | Type | Reliability | Status |
+    |----|--------|---------|--------|------|-------------|--------|
+
+The ledger should contain actual evidence only.
+
+---
+
+# 36. Evidence Graph
+
+The evidence graph is a structured representation of:
+
+    entities
+    relationships
+    evidence
+    hypotheses
+    uncertainty
+
+Example:
+
+    @target
+       |
+       | FOLLOWS
+       | supported by OBS-001
+       v
+    @account_x
+       |
+       | APPEARS_AT
+       | supported by OBS-014
+       v
+    Event X
+
+The graph is not itself proof of the interpretation.
+
+---
+
+# 37. Graph Evidence vs Graph Inference
+
+These are different.
+
+Graph evidence:
+
+    Target → FOLLOWS → Account X
+
+Graph inference:
+
+    Target and Account X may have a recurring public association.
+
+The second must reference evidence supporting the first and any additional
+observations required.
+
+---
+
+# 38. Contradiction Handling
+
+If new evidence contradicts an existing claim:
+
+1. Do not delete the old evidence.
+2. Record the contradictory evidence.
+3. Update the hypothesis state.
+4. Re-evaluate alternative explanations.
+5. Update the graph status where appropriate.
+6. Preserve the investigation history.
+
+Evidence should be append-only conceptually.
+
+The interpretation can change.
+
+The historical observation should remain traceable.
+
+---
+
+# 39. Evidence Revision
+
+If an earlier observation is discovered to be incorrect:
+
+    mark it as corrected/invalidated
+
+Do not silently rewrite history.
+
+Example:
+
+    OBS-014
+
+    Status:
+        INVALIDATED
+
+    Reason:
+        Original image was incorrectly associated with the target.
+
+Any relationship or hypothesis depending exclusively on OBS-014 must then
+be reassessed.
+
+---
+
+# 40. Stop Conditions
+
+Evidence collection should stop when:
+
+- major hypotheses are sufficiently resolved
+- remaining leads have low information value
+- available data is exhausted
+- further investigation is repetitive
+- investigation budget is exhausted
+- the remaining uncertainty cannot be reduced using available sources
+
+Stopping is preferable to generating speculative conclusions.
+
+---
+
+# 41. Final Evidence Rule
+
+The final report must always distinguish:
+
+    OBSERVED
+    DERIVED
+    INFERRED
+    HYPOTHESIZED
+    SUPPORTED
+    CONTRADICTED
+    UNKNOWN
+
+The investigator must never present one category as another.
+
+The fundamental rule is:
+
+> If the source was not actually observed, it is not evidence.
+
+And:
+
+> If the evidence does not establish the conclusion, the conclusion
+> remains unresolved.

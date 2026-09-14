@@ -1,644 +1,368 @@
-# Instagram OSINT — Observable Surfaces
+# Instagram Data Surfaces
 
-This document defines the categories of publicly observable Instagram information that may be useful during an investigation.
+This document defines the Instagram surfaces that INSTOSINT may use when they are publicly observable or otherwise authorized.
 
-The agent should treat these as possible sources of evidence, not as guaranteed sources of truth.
+## 1. Scope
 
----
+INSTOSINT investigates observable Instagram data.
 
-# 1. Profile Surface
+It must never:
 
-Inspect the target profile for observable information.
+- bypass private-account restrictions
+- bypass authentication
+- access deleted/private content through unauthorized means
+- exploit access-control weaknesses
+- treat inaccessible information as negative evidence
+- fabricate unavailable data
 
-Potential signals:
-
-* Username
-* Display name
-* Bio
-* Profile picture
-* Public account type/category
-* Public links
-* Website links
-* Contact information that is explicitly displayed publicly
-* Emoji or symbolic identifiers
-* Repeated names or aliases
-* Publicly visible profile metadata
-
-Questions to consider:
-
-* Does the username appear to be an alias?
-* Does the display name differ from the username?
-* Does the bio contain references to organizations, locations, communities, interests, or other accounts?
-* Does the profile picture resemble imagery appearing elsewhere in the investigation?
-* Does the profile link to another Instagram account?
-
-Do not treat a name or profile picture alone as sufficient identity evidence.
+If a surface cannot actually be observed, record it as `UNKNOWN` or `DATA_UNAVAILABLE`.
 
 ---
 
-# 2. Followers Surface
+# 2. Profile Surface
 
-When follower information is publicly observable, inspect it for relationships and clusters.
+Potential observations:
 
-Potential signals:
+- username
+- display name
+- bio
+- profile photo
+- account type, when visible
+- public follower/following counts
+- visible external links
+- visible location references
+- visible pronouns or self-description
+- visible category
+- visible profile metadata
 
-* Mutual followers
-* Repeated accounts
-* Unusual accounts
-* Accounts sharing names or aliases
-* Accounts belonging to apparent communities
-* Multiple accounts that appear connected to the target
-* Accounts repeatedly appearing across related profiles
+Possible derived relationships:
 
-Important:
+```text
+Account → HAS_USERNAME → username
+Account → HAS_DISPLAY_NAME → display_name
+Account → LINKS_TO → external_resource
+Account → REFERENCES → place/topic
+```
 
-The existence of a follower relationship does not establish the nature of the relationship.
+Do not assume:
 
-Record the observable relationship first.
+display_name = legal_name
+username = identity
+location_reference = current_location
+profile_photo = unique identity proof
+## 3. Followers and Following
+
+When publicly observable:
+
+followers
+following
+mutual followers
+accounts appearing repeatedly across networks
+unusual overlap between accounts
+reciprocal following
+asymmetric following
+
+Potential relationships:
+
+A → FOLLOWS → B
+A ← FOLLOWS ← B
+A → MUTUAL_CONNECTION → B
+A → NETWORK_OVERLAP → B
+
+A follow relationship alone does not establish:
+
+friendship
+romantic involvement
+family relationship
+offline contact
+current interaction
+## 4. Posts
+
+Inspect publicly observable posts for:
+
+caption text
+date/time metadata when available
+comments
+visible likes
+mentions
+tagged accounts
+hashtags
+locations
+recurring people
+recurring places
+recurring objects
+recurring events
+recurring activities
+visual context
+
+Potential observations:
+
+Post → CREATED_BY → Account
+Post → MENTIONS → Account
+Post → TAGS → Account
+Post → USES_HASHTAG → Hashtag
+Post → REFERENCES → Place
+Post → REFERENCES → Event
+## 5. Comments
+
+Comments may reveal:
+
+repeated interaction
+conversational context
+mentions
+recurring commenters
+event participation
+shared references
+temporal interaction patterns
 
 Example:
 
-TARGET → follows → ACCOUNT_A
+Account A comments on Post P.
+Account B repeatedly comments on posts by Account A.
 
-Do not automatically convert this into:
+This may support:
 
-TARGET → friend → ACCOUNT_A
+A → INTERACTS_WITH → B
 
----
+It does not automatically prove a personal relationship.
 
-# 3. Following Surface
+## 6. Likes
 
-Analyze accounts followed by the target.
+Visible likes can provide interaction evidence.
 
-Look for:
+Potential observation:
 
-* Friends or acquaintances
-* Organizations
-* Schools or colleges
-* Clubs
-* Communities
-* Businesses
-* Creators
-* Sports teams
-* Event accounts
-* Secondary accounts
-* Potential aliases
-* Repeated account categories
+Account A → LIKES → Post P
 
-Look for clusters rather than isolated accounts.
+Derived relationship:
 
-Example:
+Account A → ENGAGES_WITH_CONTENT_OF → Account B
 
-If the target follows 15 accounts associated with the same university, this may indicate a relevant community connection.
-
-It does not by itself prove enrollment.
-
----
-
-# 4. Mutual Connection Surface
-
-Mutual connections can provide useful graph evidence.
-
-Potential signals:
-
-* Number of mutual followers
-* Specific recurring mutual accounts
-* Mutual accounts appearing across multiple related profiles
-* Dense clusters of shared connections
-* Accounts acting as bridges between otherwise separate groups
-
-A large number of mutual connections may be informative, but should not automatically be interpreted as a personal relationship.
-
----
-
-# 5. Recommendation Surface
-
-Recommendation exposure is an important but ambiguous signal.
-
-If Instagram visibly recommends or surfaces another account in the context of investigating the target, record:
-
-```text
-TARGET
-  |
-  | recommendation observed
-  ↓
-ACCOUNT_B
-```
-
-Do not assume the reason for the recommendation.
-
-Possible explanations include:
-
-* Shared connections
-* Interaction signals
-* Social graph overlap
-* Shared interests
-* Platform ranking behavior
-* Contact/network signals
-* Other unknown recommendation mechanisms
-* Coincidence
-
-Treat recommendation exposure as a **lead generator**.
-
-Recommendation observations become more interesting when independently corroborated by other observable evidence.
-
-For example:
-
-```text
-Recommendation
-      +
-Shared followers
-      +
-Repeated interaction
-      +
-Related public content
-```
-
-is more informative than the recommendation alone.
-
----
-
-# 6. Post Surface
-
-Inspect publicly observable posts.
-
-For each relevant post, consider:
-
-* Caption
-* Date/time information
-* Comments
-* Mentions
-* Tags
-* Hashtags
-* Visible location information
-* People appearing in the media
-* Objects
-* Events
-* Text visible in the image
-* Recurring visual context
-* Accounts interacting with the post
-
-Do not inspect every post blindly.
-
-Prioritize posts likely to reveal relationships, communities, locations, events, or recurring entities.
-
----
-
-# 7. Caption Surface
-
-Captions may contain:
-
-* Names
-* Nicknames
-* Locations
-* Events
-* Organizations
-* Schools
-* Colleges
-* Communities
-* Dates
-* Inside references
-* Mentions
-* Hashtags
-* Links
-* Relationship language
-
-Extract entities and relationships rather than simply summarizing captions.
-
-Example:
-
-Caption:
-
-"Back at IITM with the gang"
-
-Potential entities:
-
-* IITM
-* People mentioned
-* Event/community context
-
-Potential hypothesis:
-
-"The account may have some association with the referenced institution."
-
-Do not treat casual language as definitive evidence.
-
----
-
-# 8. Comment Surface
-
-Comments may reveal relationships that are not obvious from profiles.
-
-Look for:
-
-* Repeated commenters
-* Conversation patterns
-* Replies between recurring accounts
-* Mentions
-* Nicknames
-* Inside references
-* Event references
-* Shared communities
-* Accounts repeatedly interacting with the target
-
-Repeated interaction may be more informative than a single comment.
-
-However:
-
-Interaction frequency does not automatically establish the nature of a relationship.
-
----
-
-# 9. Mention Surface
-
-Mentions can reveal explicit account relationships.
-
-Record:
-
-* Who mentions the target
-* Who the target mentions
-* Accounts repeatedly mentioned
-* Accounts mentioned together
-* Context surrounding mentions
-
-Potential patterns:
-
-```text
-A mentions B
-B mentions A
-A and B repeatedly appear in the same posts
-```
-
-This may support an association hypothesis.
-
----
-
-# 10. Tag Surface
-
-Publicly observable tags can reveal additional connections.
-
-Look for:
-
-* Accounts tagging the target
-* Accounts tagged by the target
-* Recurring co-tagged accounts
-* Multiple accounts tagged in the same events
-* Accounts appearing repeatedly together
-
-Tags should be treated as observations, not proof of friendship or other relationships.
-
----
-
-# 11. Hashtag Surface
-
-Hashtags may reveal:
-
-* Communities
-* Events
-* Organizations
-* Locations
-* Hobbies
-* Interests
-* Campaigns
-* Recurring activities
-
-Repeated use of a specific hashtag may indicate a contextual connection.
-
-Hashtags are generally weak evidence individually.
-
-Their value increases when combined with other independent signals.
-
----
-
-# 12. Tagged-Content Surface
-
-If publicly observable, inspect content where the target appears.
-
-Look for:
-
-* Recurring people
-* Recurring locations
-* Events
-* Organizations
-* Communities
-* Repeated account combinations
-* Temporal patterns
-
-This can reveal relationships that are not directly visible through the target's own posts.
-
----
-
-# 13. Image Surface
-
-Images are first-class evidence.
-
-When visual content is available, inspect it systematically.
-
-### People
-
-Look for:
-
-* Recurring individuals
-* Multiple appearances of the same individual
-* Co-appearance patterns
-* Clothing or accessories
-* Contextual similarities
-
-Visual resemblance alone is insufficient for identity confirmation.
-
-Use language such as:
-
-* "visually similar"
-* "possibly the same individual"
-* "appears consistent with"
-* "insufficient evidence for identity"
-
-### Locations
-
-Look for:
-
-* Landmarks
-* Buildings
-* Schools
-* Colleges
-* Restaurants
-* Cafés
-* Venues
-* Streets
-* Signs
-* Geographic indicators
-
-### Objects
-
-Look for recurring:
-
-* Cars
-* Motorcycles
-* Pets
-* Instruments
-* Sports equipment
-* Clothing
-* Accessories
-* Distinctive objects
-
-### Text inside images
-
-Extract visible:
-
-* Names
-* Usernames
-* Event names
-* Organization names
-* Dates
-* Locations
-* Signs
-* Posters
-* Screenshots
-* Hashtags
-
-### Events
-
-Look for evidence that multiple accounts may have participated in the same event.
-
-Potential signals:
-
-* Same venue
-* Same event
-* Similar timestamps
-* Same background/environment
-* Same event branding
-* Multiple accounts posting related images
-
-Do not automatically conclude that people appearing at the same event know each other.
-
----
-
-# 14. Profile Picture Surface
-
-Profile pictures may provide weak identity or continuity clues.
+Repeated interaction may increase the usefulness of a relationship hypothesis, but likes should not be treated as proof of relationship type.
 
 Consider:
 
-* Similar imagery across accounts
-* Recurring photographs
-* Same artwork/avatar
-* Shared visual themes
-* Publicly observable changes over time
+frequency
+time distribution
+content context
+whether interaction is reciprocal
+whether interaction is unique or widespread
+whether independent evidence exists
+## 7. Mentions and Tags
 
-Do not identify a person solely from profile-picture similarity.
-
----
-
-# 15. Story / Highlight Surface
-
-When publicly observable, consider:
-
-* Recurring people
-* Locations
-* Events
-* Mentions
-* Tagged accounts
-* Text
-* Visible dates
-* Recurring activities
-* Highlight titles and organization
-
-Highlights may preserve contextual information that is not obvious from recent posts.
-
----
-
-# 16. Linked Account Surface
-
-Inspect explicitly visible links between Instagram accounts.
+Mentions and tags are generally stronger relationship signals than generic similarity.
 
 Examples:
 
-* Main account ↔ secondary account
-* Personal account ↔ creator account
-* Organization ↔ individual
-* Publicly linked project/account
+Post P → MENTIONS → Account B
+Post P → TAGS → Account B
 
-Explicitly visible links are generally stronger evidence than inferred similarities.
+Potential interpretation:
 
----
+Account A → PUBLICLY_REFERENCES → Account B
 
-# 17. Temporal Surface
+Do not automatically infer why the account was mentioned or tagged.
 
-Time can create relationships that are invisible when examining individual posts.
+## 8. Hashtags
 
-Look for:
+Hashtags can reveal:
 
-* Multiple accounts posting around the same time
-* Repeated event dates
-* Recurring locations over time
-* Accounts becoming connected after a particular event
-* Changes in interaction patterns
-* Appearance of new accounts
-* Repeated yearly events
-
-Temporal correlation is supporting evidence, not proof of causation.
-
----
-
-# 18. Cross-Account Pattern Surface
-
-Once multiple accounts are discovered, compare them.
-
-Look for:
-
-* Shared followers
-* Shared following
-* Shared commenters
-* Shared tags
-* Shared mentions
-* Shared hashtags
-* Shared locations
-* Shared events
-* Shared visual contexts
-* Recurring people
-* Recurring objects
-* Recurring organizations
-
-This is where the investigation should begin moving from individual-account analysis toward graph analysis.
-
----
-
-# 19. Recurring Entity Surface
-
-An entity appearing repeatedly across independent observations is potentially important.
-
-Examples:
-
-```text
-Account X
-appears in:
-    target's followers
-    target's comments
-    target's tagged content
-    related account's followers
-    event photographs
-```
-
-This recurring entity may deserve prioritization.
-
-The agent should record:
-
-* Number of appearances
-* Types of appearances
-* Accounts connected through the entity
-* Context of each appearance
-* Whether evidence is independent or duplicated
-
----
-
-# 20. Bridge Account Surface
-
-Some accounts connect otherwise separate clusters.
+events
+locations
+communities
+activities
+recurring topics
+temporal clusters
 
 Example:
 
+Post A → USES_HASHTAG → #event
+Post B → USES_HASHTAG → #event
+
+This can support:
+
+Post A → SHARES_TOPIC_WITH → Post B
+
+Hashtag overlap alone is weak evidence of a personal connection.
+
+## 9. Tagged Content
+
+Public tagged content can reveal:
+
+recurring people
+recurring events
+locations
+group participation
+cross-account appearance
+
+Visual appearance of the same person should be recorded as:
+
+POSSIBLE_VISUAL_MATCH
+
+not:
+
+CONFIRMED_IDENTITY
+
+unless stronger evidence exists.
+
+## 10. Images
+
+Images are first-class investigation sources.
+
+Inspect for observable:
+
+people
+groups
+locations
+landmarks
+signs
+text
+clothing
+objects
+vehicles
+event decorations
+recurring backgrounds
+logos
+dates
+screenshots
+visible usernames
+visual similarities
+
+Record the actual observation.
+
+Example:
+
+OBS-001:
+Image contains a group of three people near a recognizable location.
+
+OBS-002:
+The same visual location appears in another public post.
+
+Do not write:
+
+Person X is definitely the same person.
+
+unless the available evidence genuinely establishes this.
+
+## 11. Text in Images
+
+Visible text may include:
+
+signs
+posters
+event names
+venue names
+usernames
+dates
+captions shown in screenshots
+addresses when publicly displayed
+product/event branding
+
+OCR-derived text should retain a reference to the image source.
+
+Image → CONTAINS_TEXT → "observed text"
+
+OCR output may contain errors and should be treated accordingly.
+
+## 12. Temporal Surface
+
+When timestamps are publicly available, examine:
+
+posting periods
+repeated interaction windows
+event dates
+recurring activity
+chronological ordering
+before/after relationships
+
+Temporal overlap is useful only when the relevant timestamps are actually available.
+
+Do not infer location or physical presence solely from posting time.
+
+## 13. Recommendations
+
+Recommendations may be observed when the platform exposes them.
+
+Possible signals:
+
+suggested accounts
+mutual connections
+recurring suggestions
+network proximity
+
+Recommendation systems are opaque.
+
+Therefore:
+
+Recommendation = LEAD
+
+not:
+
+Recommendation = RELATIONSHIP PROOF
+
+Do not claim to know the exact algorithmic reason for a recommendation.
+
+## 14. External Links
+
+Public profiles may contain:
+
+websites
+public project links
+public contact pages
+public social links
+
+INSTOSINT remains Instagram-focused.
+
+External resources may be recorded as linked context, but unrestricted cross-platform identity hunting is not a default investigation strategy.
+
+## 15. Surface Reliability
+
+Use the following general hierarchy:
+
 ```text
-Cluster A ─── Account X ─── Cluster B
+DIRECT_VISIBLE_CONTENT
+    ↓
+VISIBLE_INTERACTION
+    ↓
+DERIVED_NETWORK_RELATIONSHIP
+    ↓
+TEMPORAL/CONTEXTUAL_PATTERN
+    ↓
+RECOMMENDATION_SIGNAL
 ```
 
-A bridge account may be especially useful because investigating it may reveal why two clusters are connected.
+This is not an absolute ranking.
 
-Prioritize bridge accounts when:
+Context and corroboration always matter.
 
-* They connect multiple relevant clusters
-* They repeatedly appear across unrelated observations
-* They have meaningful public content
-* Investigating them may explain an unresolved relationship
+## 16. Data Availability
 
----
+For every attempted surface record one of:
 
-# 21. Evidence Independence
+OBSERVED
+PARTIALLY_OBSERVED
+NOT_AVAILABLE
+NOT_APPLICABLE
+UNKNOWN
 
-Do not count duplicated evidence as independent evidence.
+Never convert:
 
-For example:
+NOT_AVAILABLE
 
-If ten posts all copy the same event photograph, that is not ten independent confirmations.
+into:
 
-Likewise:
+NO_RELATIONSHIP
+## 17. Investigation Principle
 
-```text
-A follows B
-A likes B's post
-A comments on B's post
-```
+INSTOSINT should not attempt to collect everything.
 
-may all represent the same underlying interaction.
+Instead:
 
-The agent should distinguish:
+OBSERVE
+→ IDENTIFY HIGH-VALUE SIGNAL
+→ RECORD
+→ CONNECT
+→ FORM HYPOTHESIS
+→ INVESTIGATE
 
-* number of observations
-* number of independent evidence sources
-
----
-
-# 22. Investigation Priority
-
-Not every signal deserves equal investigation.
-
-Prioritize observations that are:
-
-### High value
-
-* Explicit public relationships
-* Recurring entities
-* Bridge accounts
-* Multiple independent corroborating signals
-* Unique contextual clues
-* Strongly connected clusters
-* Previously unexplained relationships
-
-### Medium value
-
-* Mutual connections
-* Repeated interactions
-* Shared events
-* Recurring hashtags
-* Recommendation signals with supporting evidence
-
-### Low value
-
-* Generic usernames
-* Common names
-* Generic hashtags
-* Single likes
-* Single comments
-* Weak visual similarities
-* Coincidental similarities
-
----
-
-# 23. Unknowns Must Remain Unknown
-
-If Instagram does not provide enough observable evidence to determine something, state:
-
-"Unknown."
-
-Do not fill gaps using assumptions.
-
-The objective is not maximum information.
-
-The objective is maximum **defensible information**.
-
----
-
-# 24. Core Principle
-
-Instagram should be treated as a dynamic relationship graph rather than a collection of isolated profiles.
-
-Every useful observation can potentially:
-
-1. create a new entity,
-2. create a new relationship,
-3. strengthen an existing relationship,
-4. weaken an existing hypothesis,
-5. reveal a new investigation path,
-6. or explain an existing unexplained connection.
-
-The investigation should continuously update its graph as new evidence appears.
-
+The goal is useful evidence, not maximum collection.

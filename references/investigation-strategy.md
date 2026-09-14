@@ -1,773 +1,438 @@
-# Investigation Strategy
+# INSTOSINT Investigation Strategy
 
-## 1. Purpose
+This document defines how INSTOSINT decides what to investigate next.
 
-The investigator should not simply collect every piece of available Instagram data.
+---
 
-Its goal is to determine:
+# 1. Objective
 
-> **What investigation step would provide the most useful new information about the current hypotheses?**
+The objective is not to collect the maximum amount of Instagram data.
 
-The agent should continuously prioritize leads, investigate them, update the evidence graph, and reconsider its hypotheses.
+The objective is to find the strongest useful explanation supported by publicly observable evidence.
 
-Core loop:
+---
+
+# 2. Investigation States
+
+```text
+INITIALIZED
+DATA_COLLECTION
+OBSERVATIONS_AVAILABLE
+GRAPH_BUILDING
+HYPOTHESIS_GENERATION
+LEAD_SELECTION
+INVESTIGATING
+CONTRADICTION_CHECK
+EVIDENCE_UPDATE
+COMPLETED
+
+Blocked states:
+
+BLOCKED_NO_DATA
+BLOCKED_ACCESS
+INSUFFICIENT_EVIDENCE
+STOPPED_LOW_VALUE
+STOPPED_BUDGET
+```
+
+# 3. Main Loop
 
 ```text
 OBSERVE
-  ↓
-RECORD EVIDENCE
-  ↓
+↓
+VALIDATE SOURCE
+↓
+RECORD OBSERVATION
+↓
+CONNECT OBSERVATION
+↓
+FORM HYPOTHESES
+↓
+SELECT HIGH-VALUE LEAD
+↓
+INVESTIGATE LEAD
+↓
+SEARCH FOR SUPPORTING AND CONTRADICTING EVIDENCE
+↓
 UPDATE GRAPH
-  ↓
-GENERATE HYPOTHESES
-  ↓
-RANK POSSIBLE NEXT ACTIONS
-  ↓
-INVESTIGATE BEST LEAD
-  ↓
-CHECK FOR CONTRADICTIONS
-  ↓
-REPEAT
+↓
+REASSESS
+↓
+REPEAT OR STOP
 ```
 
----
+# 4. Phase 1 — Initialization
 
-# 2. Start With the Target
+Input:
 
-When given an Instagram account, create a target entity.
+one Instagram account
 
-Record only information that is publicly observable or otherwise explicitly authorized.
+Create:
+
+target account
+investigation state
+source registry
+observation ledger
+relationship graph
+hypothesis list
+lead queue
+investigation budget
+
+Do not assume anything about the target beyond what is actually observed.
+
+# 5. Phase 2 — Initial Observation
+
+Inspect available public surfaces:
+
+profile
+followers/following
+posts
+comments
+likes
+mentions
+tags
+hashtags
+images
+visible timestamps
+locations
+linked resources
+recommendations
+
+Do not exhaustively crawl every available object automatically.
+
+# 6. Phase 3 — Observation Recording
+
+For each useful observation record:
+
+what was observed
+where it was observed
+when it was observed
+source
+reliability
+independence group
 
 Example:
 
-```text
-TARGET
-├── username
-├── display_name
-├── bio
-├── profile_image
-├── followers
-├── following
-├── visible posts
-├── visible interactions
-└── other observable surfaces
-```
+OBS-001
+Source: SRC-001
+Observation:
+Target publicly follows Account B.
+Reliability: HIGH
+# 7. Phase 4 — Entity Extraction
 
-Do not immediately decide what the target's relationships are.
+Extract potentially useful entities:
 
-The initial target is simply the starting node of the investigation graph.
+accounts
+people
+places
+events
+hashtags
+objects
+organizations
+recurring visual elements
+recurring interactions
 
----
+Do not convert uncertain entities into confirmed identities.
 
-# 3. Build a Candidate Pool
+# 8. Phase 5 — Relationship Discovery
 
-As observations are collected, create candidate entities.
+Look for:
 
-Examples:
+direct interaction
+reciprocal interaction
+repeated interaction
+shared network
+shared content
+shared event
+shared location
+visual recurrence
+temporal recurrence
+cross-post references
 
-```text
-Target
- ├── Account A
- ├── Account B
- ├── Account C
- ├── Location X
- ├── Event Y
- └── Hashtag Z
-```
+Each relationship must be traceable to observations.
 
-Candidates can originate from:
+# 9. Phase 6 — Hypothesis Generation
 
-* followers
-* following
-* mutual connections
-* recommendations
-* comments
-* mentions
-* tags
-* visible likes
-* captions
-* hashtags
-* images
-* profile pictures
-* recurring locations
-* recurring events
-* linked accounts
-* repeated usernames
-* repeated aliases
-
-A candidate is **not automatically a meaningful connection**.
-
----
-
-# 4. Rank Candidates
-
-Every candidate should receive a qualitative priority.
-
-Use:
-
-```text
-HIGH
-MEDIUM
-LOW
-IGNORE
-```
-
-Priority should consider:
-
-### 4.1 Relevance
-
-How directly is the candidate connected to the current hypothesis?
+A hypothesis explains one or more observations.
 
 Example:
 
-```text
-Target repeatedly appears with Account A
-```
+HYP-001:
+Account A and Account B may have a recurring offline association.
 
-is more relevant than:
+Possible supporting evidence:
 
-```text
-Target and Account B follow the same large public account
-```
+repeated public interactions
+repeated appearance in the same event context
+reciprocal network relationship
+recurring visual context
 
----
+The wording should remain proportional to evidence strength.
 
-### 4.2 Evidence Strength
+# 10. Competing Hypotheses
 
-Prefer candidates supported by multiple independent observations.
-
-For example:
-
-```text
-Target follows Account A
-Target repeatedly interacts with Account A
-Target appears with Account A
-```
-
-is more useful than one isolated follow.
-
----
-
-### 4.3 Novelty
-
-Prefer investigations that could reveal something not already known.
-
-If five observations all originate from the same post, investigating another identical signal has low value.
-
----
-
-### 4.4 Discriminating Power
-
-Prefer actions that can distinguish between competing hypotheses.
+Always consider alternatives.
 
 Example:
 
-```text
-H1: Account A is simply a mutual connection.
-H2: Account A has a stronger recurring association with Target.
-```
+H1: A and B have a personal association.
 
-Finding another mutual follower may not distinguish H1 from H2.
+H2: A and B belong to the same social/community network.
 
-Finding several independent interactions between Target and Account A may.
+H3: A and B repeatedly interact because of a shared activity.
 
----
+H4: The apparent relationship is an artifact of public platform behavior.
 
-### 4.5 Reliability
+Do not investigate only evidence supporting H1.
 
-Prefer directly observable evidence over speculation.
+# 11. Lead Selection
 
-Rough ordering:
+Every lead should have:
 
-```text
-Direct visible observation
-        ↓
-Repeated observation
-        ↓
-Independent corroboration
-        ↓
-Derived relationship
-        ↓
-Interpretation
-        ↓
-Speculation
-```
+lead_id
+target
+reason
+expected_information_gain
+cost
+risk_of_false_inference
 
----
+Prioritize leads that are:
 
-# 5. Do Not Crawl Everything
+high information gain
+low cost
+strongly connected to existing evidence
+capable of distinguishing competing hypotheses
+# 12. Information Gain
 
-The investigator should avoid exhaustive exploration when it has little expected value.
+A lead is valuable when its result can significantly change the investigation.
 
-Bad strategy:
+High-value example:
 
-```text
-Open every follower.
-Open every follower's followers.
-Open every post.
-Open every comment.
-Repeat forever.
-```
+Investigate a recurring public event appearing in multiple posts.
 
-This creates enormous noise.
+Lower-value example:
 
-Instead:
+Collect another generic follower with no connection to the hypothesis.
+# 13. Recursive Investigation
 
-```text
-Target
- ↓
-Find interesting candidate
- ↓
-Investigate candidate
- ↓
-Determine whether candidate produces useful evidence
- ↓
-Continue or abandon branch
-```
-
----
-
-# 6. Follow Strong Leads Recursively
-
-If Account A becomes important, investigate Account A.
-
-For example:
-
-```text
-Target
-   ↓
-Account A
-   ↓
-Account B
-   ↓
-Location X
-   ↓
-Account C
-```
-
-Each newly discovered node can reveal additional evidence.
-
-However, recursion must have limits.
-
-Do not recursively explore an entire Instagram network without a reason.
-
----
-
-# 7. Bridge Accounts
-
-A particularly useful candidate is a **bridge account**.
-
-A bridge account connects otherwise separate parts of the graph.
+A discovered entity may become the next investigation target.
 
 Example:
 
 ```text
 Target
- ├── Network A
- │    ├── Account 1
- │    └── Account 2
- │
- └── Account X
-      │
-      └── Network B
-           ├── Account 3
-           └── Account 4
+  ↓
+recurring account
+  ↓
+public post
+  ↓
+recurring event
+  ↓
+other public participants
+  ↓
+shared visual context
 ```
 
-If Account X repeatedly connects Target's otherwise separate networks, it deserves investigation.
-
-Bridge accounts can reveal:
-
-* shared communities
-* recurring social contexts
-* events
-* organizations
-* friend groups
-* shared activities
-
-Do not automatically interpret a bridge as evidence of a personal relationship.
-
----
-
-# 8. Recurring Contexts
-
-Repeated context can be more informative than a single interaction.
-
-Look for repeated:
-
-* locations
-* events
-* venues
-* activities
-* groups
-* hashtags
-* people
-* objects
-* dates/time periods
-* visual backgrounds
-* captions/themes
-
-Example:
-
-```text
-Post 1 → Location X
-Post 2 → Location X
-Post 3 → Account A
-Post 4 → Location X + Account A
-```
-
-This may justify investigating:
-
-```text
-Target ↔ Account A ↔ Location X
-```
-
-The system should record the observations separately rather than immediately declaring a relationship.
-
----
-
-# 9. Image-Based Investigation
-
-Images should be treated as evidence sources, not decoration.
-
-When an image is available, inspect observable features such as:
-
-### People
-
-* number of people
-* recurring faces
-* apparent same person across images
-* clothing patterns
-* positioning
-* group composition
-
-### Environment
-
-* buildings
-* streets
-* venues
-* landmarks
-* interiors
-* signs
-
-### Objects
-
-* vehicles
-* products
-* equipment
-* decorations
-* distinctive items
-
-### Text
-
-Read visible:
-
-* signs
-* usernames
-* event names
-* logos
-* captions embedded in images
-* dates
-* locations
-
-### Temporal clues
-
-Compare:
-
-* clothing
-* weather
-* event decorations
-* venue appearance
-* visible dates
-
-Visual observations must remain separate from identity claims.
-
-For example:
-
-```text
-OBSERVED:
-A person with similar visible characteristics appears in two images.
-
-NOT:
-These are definitely the same person.
-```
-
----
-
-# 10. Recommendation Signals
-
-Recommendations can be used to generate candidates.
-
-Example:
-
-```text
-Target
-   ↓
-Recommended Account A
-```
+Every hop must have a reason.
 
 Record:
 
-```text
-Recommendation observed
-```
+parent entity
+new entity
+reason for traversal
+expected information gain
 
-Do not record:
+Avoid uncontrolled graph expansion.
 
-```text
-Target knows Account A
-```
+# 14. Image-Driven Investigation
 
-The recommendation mechanism is not fully observable.
-
-Possible explanations include:
-
-* mutual connections
-* interaction signals
-* shared interests
-* network proximity
-* platform ranking
-* contact/network signals
-* coincidence
-
-Therefore:
-
-```text
-Recommendation = LEAD
-Recommendation ≠ PROOF
-```
-
----
-
-# 11. Interaction Patterns
-
-Prioritize repeated interactions over isolated interactions.
+Images can create leads.
 
 Example:
 
 ```text
-One like
-    → weak signal
-
-Several likes across different posts
-    → stronger signal
-
-Repeated comments
-    → stronger signal
-
-Comments + likes + mentions
-    → potentially strong association evidence
+Image
+↓
+recognizable venue
+↓
+public event
+↓
+other public posts from event
+↓
+recurring accounts
 ```
 
-But interaction frequency alone should not be converted into a sensitive relationship claim.
+Visual observations must remain separate from identity conclusions.
 
-The correct conclusion may simply be:
+# 15. Recommendation-Driven Investigation
 
-```text
-"These accounts show repeated interaction."
-```
-
----
-
-# 12. Temporal Analysis
-
-Time can reveal patterns.
-
-Compare:
-
-```text
-Account A posts
-Target interacts
-Account B posts
-Target appears
-```
-
-Look for repeated timing patterns.
+Recommendations can generate leads.
 
 Example:
 
 ```text
-Event 1
-Target + Account A
-
-Event 2
-Target + Account A
-
-Event 3
-Target + Account A
+Target
+↓
+recommended account
+↓
+inspect observable network overlap
+↓
+compare independent evidence
 ```
 
-Repeated co-occurrence is more informative than one coincidence.
+Do not conclude:
 
-However:
+recommended = close relationship
+# 16. Contradiction Search
 
-```text
-Same date ≠ same event
-```
+For every important hypothesis ask:
 
-and:
-
-```text
-Same location ≠ same group
-```
-
-unless additional evidence supports that conclusion.
-
----
-
-# 13. Generate Competing Hypotheses
-
-Never maintain only one explanation.
-
-Suppose:
-
-```text
-Target interacts frequently with Account A.
-```
-
-Possible hypotheses:
-
-```text
-H1: They are ordinary acquaintances.
-H2: They belong to the same social group.
-H3: They share a recurring activity/community.
-H4: The interaction is mostly one-sided.
-H5: The observed pattern is coincidental.
-```
-
-The investigator should actively look for evidence that separates these possibilities.
-
----
-
-# 14. Choose the Next Best Investigation
-
-For every possible next action, ask:
-
-```text
-1. What hypothesis does this investigate?
-2. What new evidence could it produce?
-3. Would that evidence distinguish competing hypotheses?
-4. How reliable would the evidence be?
-5. Is the evidence independent of what we already know?
-6. How much effort does this investigation require?
-```
-
-Prefer investigations with:
-
-```text
-High relevance
-+
-High information value
-+
-Independent evidence
-+
-Reasonable effort
-```
-
----
-
-# 15. Information Gain
-
-The best next action is often the one that could change the current conclusion.
-
-Example:
-
-```text
-H1: Account A is just a mutual.
-H2: Account A has a recurring association with Target.
-```
-
-Possible actions:
-
-```text
-A. Find another mutual follower
-B. Inspect another Target post involving Account A
-C. Check whether Account A repeatedly appears in Target's visible content
-D. Search unrelated hashtags
-```
-
-Prefer:
-
-```text
-C
-```
-
-because it can directly distinguish the hypotheses.
-
----
-
-# 16. Evidence Independence
-
-Do not count the same underlying event multiple times.
-
-Example:
-
-```text
-Target likes Account A's post.
-Target's like appears in a list.
-Another observation confirms the same like.
-```
-
-This is effectively one event:
-
-```text
-Target liked Account A's post.
-```
-
-It should not become three independent pieces of evidence.
-
----
-
-# 17. Contradiction Search
-
-For every strong hypothesis, deliberately search for contradictory evidence.
-
-Example:
-
-```text
-Hypothesis:
-Target and Account A have a recurring association.
-```
+What evidence would make this hypothesis less likely?
 
 Search for:
 
-```text
-- evidence showing no recurring interaction
-- different contexts
-- conflicting identity clues
-- different locations
-- evidence suggesting another Account A
-- observations that explain the pattern more simply
-```
+contradictory timestamps
+incompatible locations
+non-reciprocal patterns
+alternative explanations
+inconsistent identities
+unrelated context
+evidence suggesting platform-driven rather than personal interaction
+# 17. Entity Resolution
 
-A good investigator should be able to say:
+Possible identity matches should be treated probabilistically.
 
-```text
-"What evidence would prove my current hypothesis wrong?"
-```
+Useful signals:
 
----
+username similarity
+display-name similarity
+profile-image similarity
+bio similarity
+network overlap
+visual context
+temporal consistency
+cross-references
 
-# 18. Entity Resolution
+No single weak signal should establish identity.
 
-Similar usernames, names, profile pictures, or appearances do not automatically indicate the same person.
+Example:
 
-Represent uncertain identity as:
+same profile picture
 
-```text
-Account A
-   ↓
-POSSIBLE_SAME_ENTITY
-   ↓
-Account B
-```
+means:
 
-Only strengthen the relationship when independent evidence supports it.
+POSSIBLE_MATCH
 
-Useful signals may include:
+not:
 
-* matching public username patterns
-* matching public profile information
-* consistent public images
-* recurring links
-* overlapping public contexts
-* explicit public mentions
+CONFIRMED_SAME_PERSON
+# 18. Evidence Independence
 
-Avoid relying on one visual similarity.
+Do not double-count evidence.
 
----
+Example:
 
-# 19. Stop Investigating a Branch
+Post caption says X.
+Screenshot of same caption says X.
+Another analysis of same screenshot says X.
 
-Abandon a branch when:
+These are not three independent observations.
 
-```text
-Evidence is weak
-AND
-No new useful information is appearing
-```
+# 19. Investigation Budget
 
-or:
-
-```text
-The candidate is clearly unrelated
-```
-
-or:
-
-```text
-The branch requires speculation rather than observable evidence
-```
-
-Do not continue simply because more data can technically be collected.
-
----
-
-# 20. Investigation Budget
-
-The investigator should maintain a practical exploration budget.
+The investigation should have limits.
 
 Possible limits:
 
-```text
-Maximum recursion depth
-Maximum accounts investigated
-Maximum posts per account
-Maximum low-value branches
-Maximum repeated observations
-```
+maximum investigation depth
+maximum inspected accounts
+maximum inspected posts
+maximum recursive hops
+maximum low-value actions
+maximum time/tool budget
 
-When the budget is exhausted:
+If the budget is exhausted:
 
-```text
-Summarize current evidence
-Identify unresolved hypotheses
-Stop
-```
+STOPPED_BUDGET
 
-The exact limits should depend on the available tools and task.
+Do not continue indefinitely.
 
----
+# 20. Stop Conditions
 
-# 21. Final Investigation Decision
+Stop when:
 
-At every stage, the agent should be able to answer:
+the question is sufficiently answered
+OR
+evidence remains insufficient after useful leads are exhausted
+OR
+additional investigation has low expected value
+OR
+public/authorized data is unavailable
+OR
+investigation budget is exhausted
 
-```text
-What do I currently know?
+Possible final states:
 
-What am I uncertain about?
+COMPLETED
+INSUFFICIENT_EVIDENCE
+STOPPED_LOW_VALUE
+STOPPED_BUDGET
+BLOCKED_ACCESS
+BLOCKED_NO_DATA
+# 21. Confidence
 
-What are my competing hypotheses?
+Use qualitative levels:
 
-What evidence supports each?
+UNKNOWN
+WEAK
+MODERATE
+STRONG
 
-What evidence contradicts each?
+Confidence should reflect evidence quality, not the model's intuition.
 
-What is the most useful next investigation?
+# 22. Sensitive Conclusions
 
-Why?
-```
+Do not infer sensitive personal characteristics or private relationships from weak signals.
 
-If there is no high-value next investigation, stop.
+Especially avoid presenting:
 
----
+dating
+romantic relationship
+sexual relationship
+family relationship
+private identity
 
-# 22. Core Rule
+as established merely from:
 
-The investigator is not trying to discover the most interesting story.
+likes
+follows
+comments
+visual similarity
+recommendations
+shared location
 
-It is trying to discover the **most defensible explanation supported by observable evidence**.
+If such a hypothesis is relevant, keep it explicitly unresolved unless sufficiently supported by appropriate public evidence.
 
-```text
-More data ≠ better investigation
+# 23. Final Decision
 
-Better evidence
-+
-better reasoning
-+
-better uncertainty handling
-=
-better investigation
-```
+The investigator must distinguish:
 
+OBSERVED
+DERIVED
+INFERRED
+HYPOTHETICAL
+SUPPORTED
+CONTRADICTED
+UNKNOWN
+
+Never collapse these categories into one.
+
+# 24. Core Principle
+
+The next action should be chosen because it can change what we know.
+
+NOT:
+"Explore everything."
+
+BUT:
+"What is the most useful unanswered question right now?"

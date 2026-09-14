@@ -1,606 +1,298 @@
-# Investigation Output
+# INSTOSINT Investigation Output
 
-## 1. Purpose
-
-The investigator must produce an output that allows another person to understand:
-
-* what was actually observed
-* what was derived from those observations
-* what relationships were discovered
-* which hypotheses were considered
-* what evidence supports or contradicts them
-* what remains unknown
-* how confident the investigator should be
-
-The output must never hide uncertainty behind a confident narrative.
+The final report must distinguish observed facts from interpretation.
 
 ---
+
+# 1. Output Structure
+
+Use:
+
+```text
+INVESTIGATION SUMMARY
+DATA AVAILABILITY
+KEY OBSERVATIONS
+DERIVED RELATIONSHIPS
+HYPOTHESES
+SUPPORTING EVIDENCE
+CONTRADICTING EVIDENCE
+ALTERNATIVE EXPLANATIONS
+HIGH-VALUE LEADS
+UNKNOWN / UNAVAILABLE DATA
+CONCLUSION
+TRACEABILITY
+```
 
 # 2. Investigation Summary
 
-Begin with a short summary.
+Include:
 
-```text
-Investigation target:
-[Instagram username]
+target
+scope
+investigation state
+data availability
+investigation depth
+major limitations
 
-Investigation scope:
-Publicly observable Instagram information
+Do not claim that inaccessible data was investigated.
 
-Current status:
-[Exploring / Partially resolved / No strong leads / Completed]
+# 3. Key Observations
 
-Main finding:
-[Short evidence-based summary]
-```
-
-Do not state an interpretation as fact unless the available evidence supports it.
-
----
-
-# 3. Observations
-
-List important observations separately from interpretations.
-
-Format:
-
-```text
-OBS-001
-Source: Target profile
-Observation: Target follows Account A.
-Type: DIRECT_OBSERVATION
-Reliability: HIGH
-```
-
-Another example:
-
-```text
-OBS-002
-Source: Target post
-Observation: Account A is visibly present in the post.
-Type: VISUAL_OBSERVATION
-Reliability: HIGH
-```
-
-Another:
-
-```text
-OBS-003
-Source: Recommendation surface
-Observation: Account B was shown as a recommended account.
-Type: DIRECT_OBSERVATION
-Reliability: MEDIUM
-```
-
-Observations should describe **what was seen**, not what it supposedly means.
-
----
-
-# 4. Derived Relationships
-
-After observations, list relationships derived directly from them.
+Only include actual observations.
 
 Example:
 
-```text
-REL-001
-
-Subject: Target
-Relationship: INTERACTS_WITH
-Object: Account A
-
-Supporting observations:
 OBS-001
-OBS-004
-OBS-007
+Target publicly follows Account B.
 
-Strength: MODERATE
-```
+OBS-002
+Account B appears in three publicly visible posts associated with the target.
 
-Possible relationship types include:
+OBS-003
+The posts occur within the same publicly observable event context.
 
-```text
-FOLLOWS
-INTERACTS_WITH
-MENTIONS
-TAGGED_WITH
-APPEARS_WITH
-SHARES_CONTEXT_WITH
-SHARES_NETWORK_WITH
-POSSIBLE_ALIAS
-POSSIBLE_SAME_ENTITY
-POSSIBLE_ASSOCIATION
-```
+Each observation should reference its source.
 
-Do not use a stronger relationship type than the evidence justifies.
+# 4. Derived Relationships
 
----
+Example:
 
-# 5. Evidence Table
+REL-001
+Target → FOLLOWS → Account B
 
-Important evidence should be summarized in a structured table.
+Evidence:
+OBS-001
 
-| ID      | Subject | Object    | Relationship         | Evidence                       | Strength |
-| ------- | ------- | --------- | -------------------- | ------------------------------ | -------- |
-| OBS-001 | Target  | Account A | FOLLOWS              | Visible following relationship | Strong   |
-| OBS-002 | Target  | Account A | APPEARS_WITH         | Both visible in post           | Strong   |
-| OBS-003 | Target  | Account B | POSSIBLE_ASSOCIATION | Recommendation                 | Weak     |
+Another:
 
-The table is a summary, not a replacement for the underlying evidence.
+REL-002
+Target → SHARES_EVENT_CONTEXT → Account B
 
----
+Evidence:
+OBS-002
+OBS-003
 
-# 6. Hypotheses
+Do not present unsupported edges.
 
-List hypotheses separately.
+# 5. Hypotheses
 
-Format:
+Use:
 
-```text
 HYP-001
-
-Hypothesis:
-Target and Account A have a recurring association.
+Statement:
+Target and Account B may have a recurring public association.
 
 Status:
 INVESTIGATING
 
 Supporting evidence:
-OBS-001
-OBS-002
-OBS-006
+REL-001
+REL-002
 
 Contradicting evidence:
-OBS-010
+None currently observed.
 
-Confidence:
-MODERATE
+Alternative explanations:
+They may simply participate in the same public community/event.
+# 6. Hypothesis Status
 
-Reason:
-Multiple independent observations indicate repeated interaction,
-but the available evidence does not establish the nature of the association.
-```
+Allowed:
 
----
-
-# 7. Hypothesis Status
-
-Use one of:
-
-```text
 POSSIBLE
 INVESTIGATING
 SUPPORTED
 STRONGLY_SUPPORTED
 CONTRADICTED
 UNRESOLVED
-```
 
-Definitions:
+Use UNRESOLVED when evidence does not distinguish between plausible explanations.
 
-### POSSIBLE
-
-There is some evidence compatible with the hypothesis, but very little support.
-
-### INVESTIGATING
-
-The hypothesis is plausible and additional evidence is being examined.
-
-### SUPPORTED
-
-Multiple useful observations support the hypothesis.
-
-### STRONGLY_SUPPORTED
-
-Multiple independent and reliable observations support the hypothesis and major alternatives have been weakened.
-
-### CONTRADICTED
-
-Important evidence conflicts with the hypothesis.
-
-### UNRESOLVED
-
-The available evidence cannot distinguish the hypothesis reliably.
-
----
-
-# 8. Confidence Language
-
-Use qualitative confidence.
-
-Preferred:
-
-```text
-Low confidence
-Moderate confidence
-High confidence
-Very high confidence
-```
-
-Do not invent percentages such as:
-
-```text
-87% probability
-93.5% likely
-```
-
-unless the system has a properly calibrated statistical model.
-
-Confidence must describe the **evidence**, not the investigator's intuition.
-
----
-
-# 9. Alternative Explanations
-
-For important hypotheses, explicitly list alternatives.
-
-Example:
-
-```text
-Primary hypothesis:
-Target and Account A have a recurring association.
-
-Alternative 1:
-They belong to the same community.
-
-Alternative 2:
-They are ordinary acquaintances.
-
-Alternative 3:
-The observed interactions are mostly incidental.
-
-Alternative 4:
-Some observed accounts may belong to different people with similar identities.
-```
-
-Then explain which observations distinguish these alternatives.
-
----
-
-# 10. Contradictory Evidence
-
-Never hide evidence that conflicts with the leading hypothesis.
-
-Format:
-
-```text
-CONTRADICTION
-
-Hypothesis:
-Target and Account A frequently interact.
-
-Evidence:
-Account A appears in one context only and there are no other visible
-interactions across the examined surfaces.
-
-Effect:
-Reduces confidence in the hypothesis.
-```
-
-Contradictions should be included even when they make the final conclusion less interesting.
-
----
-
-# 11. Entity Resolution
-
-When two accounts may represent the same entity:
-
-```text
-ENTITY-001
-
-Account A:
-@account_a
-
-Account B:
-@account_b
-
-Relationship:
-POSSIBLE_SAME_ENTITY
-
-Supporting evidence:
-- Similar public username
-- Similar public profile information
-- Consistent public context
-
-Confidence:
-Low / Moderate / High
-```
-
-Never silently merge accounts.
-
-The final report should make uncertain identity matching visible.
-
----
-
-# 12. Evidence Graph
-
-For complex investigations, represent the important graph.
-
-Example:
-
-```text
-                    ┌──────────────┐
-                    │   Account A  │
-                    └──────┬───────┘
-                           │
-                       interacts
-                           │
-                           ▼
-┌──────────┐          ┌──────────┐
-│  Target  │─────────▶│Location X│
-└────┬─────┘  appears  └────┬─────┘
-     │                       │
-     │ follows               │ shared
-     ▼                       ▼
-┌──────────┐            ┌──────────┐
-│Account B │            │  Event Y │
-└──────────┘            └──────────┘
-```
-
-Every important edge should be traceable to evidence.
-
----
-
-# 13. Investigation Path
-
-Show how important discoveries were reached.
-
-Example:
-
-```text
-Target
-  ↓
-Following surface
-  ↓
-Account A discovered
-  ↓
-Account A investigated
-  ↓
-Recurring interaction discovered
-  ↓
-Location X discovered
-  ↓
-Additional accounts discovered
-```
-
-This helps distinguish deliberate investigation from accidental discovery.
-
----
-
-# 14. Next Best Leads
-
-If the investigation is not finished, list the most useful next leads.
-
-Example:
-
-```text
-NEXT LEADS
-
-1. Account A
-   Reason:
-   Multiple independent interactions with Target.
-
-2. Location X
-   Reason:
-   Appears repeatedly across different posts.
-
-3. Account B
-   Reason:
-   Bridge between two otherwise separate networks.
-```
-
-Do not recommend a lead merely because it is interesting.
-
-Explain **why investigating it could change the current conclusion**.
-
----
-
-# 15. Dead Ends
-
-Record useful failed investigations.
-
-Example:
-
-```text
-DEAD END
-
-Candidate:
-Account C
-
-Reason abandoned:
-Only shared connection was a large public account.
-No additional interaction or contextual evidence found.
-```
-
-This prevents the investigator from repeatedly exploring the same weak branch.
-
----
-
-# 16. Unknowns
-
-Clearly state what cannot currently be determined.
-
-Example:
-
-```text
-UNKNOWN
-
-- Nature of the relationship between Target and Account A
-- Whether two visually similar accounts represent the same person
-- Why Account B appeared in recommendations
-- Whether two posts occurred at the same event
-```
-
-Unknown information must remain unknown.
-
-Do not fill gaps using assumptions.
-
----
-
-# 17. Final Conclusion
-
-The conclusion should have three parts.
-
-### What is established
-
-Facts supported directly by evidence.
-
-### What is supported but uncertain
-
-Reasonable interpretations supported by multiple observations.
-
-### What cannot be established
-
-Claims for which sufficient evidence does not exist.
-
-Example:
-
-```text
-ESTABLISHED
-
-Target and Account A have multiple observable interactions.
-
-SUPPORTED BUT UNCERTAIN
-
-The accounts appear to have a recurring association.
-
-CANNOT BE ESTABLISHED
-
-The available public evidence does not establish the exact nature
-of that association.
-```
-
----
-
-# 18. Evidence Quality Summary
-
-End with:
-
-```text
-Evidence quality:
-[Low / Moderate / High]
-
-Independent evidence sources:
-[Number or qualitative description]
-
-Major limitations:
-[List]
-
-Major contradictions:
-[List]
-
-Unresolved questions:
-[List]
-```
-
----
-
-# 19. Do Not Overclaim
-
-Avoid conclusions such as:
-
-```text
-"They are definitely friends."
-
-"They are definitely dating."
-
-"This account definitely belongs to X."
-
-"Instagram recommended this person because they know each other."
-```
-
-unless the evidence directly establishes the claim.
-
-Prefer:
-
-```text
-"The accounts show repeated interaction."
-
-"The available evidence is consistent with a recurring association."
-
-"The accounts may represent the same entity, but this is not established."
-
-"The recommendation is a lead, not proof of a connection."
-```
-
----
-
-# 20. Evidence Traceability
-
-Every significant conclusion must be traceable.
+# 7. Evidence Strength
 
 Use:
 
+UNKNOWN
+WEAK
+MODERATE
+STRONG
+
+Strength should reflect:
+
+specificity
+source quality
+independence
+corroboration
+consistency
+contradictions
+
+Do not make evidence strong merely because there are many weak observations.
+
+# 8. Alternative Explanations
+
+Every important hypothesis should include plausible alternatives.
+
+Example:
+
+Primary hypothesis:
+Repeated association between A and B.
+
+Alternative:
+Both participate in the same community.
+
+Alternative:
+Interactions are driven by public content rather than an offline association.
+# 9. Contradicting Evidence
+
+Explicitly record evidence that weakens a hypothesis.
+
+Example:
+
+HYP-001
+Contradicting evidence:
+OBS-017 indicates the apparently shared event occurred at a different time than initially expected.
+
+Contradicting evidence must not be hidden.
+
+# 10. Unknown Data
+
+List important unanswered questions:
+
+Followers unavailable.
+Private posts unavailable.
+Timestamp unavailable.
+Identity unresolved.
+Recommendation mechanism unknown.
+
+Unknown is not equivalent to false.
+
+# 11. High-Value Leads
+
+A lead should contain:
+
+LEAD-ID
+target
+reason
+expected information gain
+cost
+status
+
+Example:
+
+LEAD-001
+Target:
+Public event referenced by multiple posts.
+
+Reason:
+Could distinguish shared-community explanation from repeated personal association.
+
+Expected information gain:
+HIGH
+
+Status:
+UNINVESTIGATED
+# 12. Conclusions
+
+Conclusions must be proportional to evidence.
+
+Good:
+
+Publicly observable evidence shows repeated interaction between the two accounts.
+The available evidence supports a recurring association, but does not establish the nature of that association.
+
+Bad:
+
+They are definitely close friends.
+
+when the evidence only shows follows and likes.
+
+# 13. Traceability
+
+Every conclusion should map:
+
 ```text
-Conclusion
-    ↓
-Hypothesis
-    ↓
-Relationships
-    ↓
-Observations
+CONCLUSION
+↓
+HYPOTHESIS
+↓
+RELATIONSHIPS
+↓
+OBSERVATIONS
+↓
+SOURCES
 ```
 
 Example:
 
-```text
 Conclusion:
-Recurring association is supported.
+Repeated public association is supported.
 
-        ↓
+↓ HYP-001
 
-HYP-001
+Hypothesis:
+A and B may have a recurring public association.
 
-        ↓
+↓ REL-001
+↓ REL-002
 
-REL-001
-REL-004
-REL-007
+Relationships:
+A follows B.
+A and B repeatedly appear in the same public event context.
 
-        ↓
+↓ OBS-001
+↓ OBS-002
+↓ OBS-003
 
-OBS-001
-OBS-004
-OBS-008
-OBS-012
-```
+Observations:
+Actual publicly observed Instagram data.
 
-If a conclusion cannot be traced back to observations, downgrade or remove it.
+↓ SRC-001
+↓ SRC-002
+# 14. Failed Investigations
 
----
+If no useful evidence was available:
 
-# 21. Core Output Principle
+STATUS: INSUFFICIENT_EVIDENCE
 
-The final report should make it possible for another investigator to reproduce the reasoning.
+Explain:
 
-A good report answers:
+what was checked
+what was unavailable
+why no reliable conclusion could be reached
 
-```text
-What did we see?
-        ↓
-What relationships can be directly established?
-        ↓
-What hypotheses were considered?
-        ↓
-What evidence supports them?
-        ↓
-What evidence contradicts them?
-        ↓
-What remains uncertain?
-        ↓
-What should be investigated next?
-```
+Do not invent findings to make the report look complete.
 
-The investigator should optimize for:
+# 15. Access Restrictions
 
-```text
-TRACEABILITY
-+
-EVIDENCE QUALITY
-+
-UNCERTAINTY
-+
-REPRODUCIBILITY
-```
+If investigation is blocked:
 
-not for a dramatic or definitive-sounding conclusion.
+STATUS: BLOCKED_ACCESS
+
+Report the limitation.
+
+Do not attempt to bypass it.
+
+# 16. No-Data Rule
+
+If a source was never actually observed:
+
+DO NOT CREATE OBSERVATION
+DO NOT CREATE RELATIONSHIP
+DO NOT CREATE HYPOTHESIS BASED ON IT
+
+Unknown data remains unknown.
+
+# 17. Synthetic Examples
+
+Any fictional examples must be explicitly marked:
+
+[SYNTHETIC EXAMPLE]
+
+Synthetic entities must never appear in an actual investigation report.
+
+# 18. Final Principle
+
+The report should make it possible for another investigator to ask:
+
+"Why did you reach this conclusion?"
+
+and trace the answer all the way back to the original observed source.

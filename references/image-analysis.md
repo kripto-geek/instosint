@@ -1,704 +1,283 @@
-# Image Analysis
+# INSTOSINT Image Analysis
 
-## 1. Purpose
+Images are first-class evidence sources.
 
-Images are a first-class information source in an Instagram investigation.
-
-An image may contain useful evidence that is not represented in:
-
-* captions
-* usernames
-* followers
-* following
-* comments
-* tags
-
-The investigator should inspect publicly observable visual information when available.
-
-The goal is not to identify people from appearance alone.
-
-The goal is to extract **observable contextual evidence** and connect it with other evidence.
+Image analysis must remain grounded in what is actually visible.
 
 ---
 
-# 2. Image Analysis Pipeline
-
-For every useful image:
+# 1. Image Pipeline
 
 ```text
-IMAGE
-  ↓
+IMAGE SOURCE
+↓
 VISUAL OBSERVATION
-  ↓
-EXTRACT ENTITIES
-  ↓
-EXTRACT CONTEXT
-  ↓
-COMPARE WITH EXISTING GRAPH
-  ↓
-GENERATE POSSIBLE CONNECTIONS
-  ↓
-LOOK FOR INDEPENDENT CORROBORATION
+↓
+TEXT / OBJECT / CONTEXT EXTRACTION
+↓
+ENTITY CANDIDATES
+↓
+RELATIONSHIP CANDIDATES
+↓
+HYPOTHESES
+↓
+CORROBORATION
 ```
 
-Do not jump directly from image → conclusion.
+# 2. Source Registration
 
----
+Every image observation must reference the actual source.
 
-# 3. What to Inspect
+Conceptually:
 
-Analyze the image for several categories.
+source_id: SRC-IMAGE-001
+type: IMAGE
+origin: observed Instagram post
 
-## 3.1 People
+Do not create image evidence without a source.
 
-Record observable information such as:
+# 3. Visual Categories
 
-* number of people
-* whether people appear repeatedly across posts
-* approximate positioning
-* group composition
-* clothing that may provide contextual clues
-* visible accessories
-* whether someone is explicitly tagged
-* whether someone is mentioned in the surrounding post context
+Inspect for:
+
+PEOPLE
+PLACES
+EVENTS
+OBJECTS
+TEXT
+LOGOS
+SIGNS
+LANDMARKS
+VEHICLES
+CLOTHING
+BACKGROUND
+SCREENSHOTS
+DATES
+USERNAMES
+
+Only record what can actually be observed.
+
+# 4. People in Images
+
+Possible observations:
+
+number of visible people
+relative arrangement
+visible clothing
+visible accessories
+visible context
+whether a person appears in multiple images
+
+Avoid unnecessary identification.
+
+A visual similarity is:
+
+POSSIBLE_VISUAL_MATCH
+
+not automatic identity confirmation.
+
+# 5. Recurring Visual Elements
+
+Recurring elements can be useful:
+
+same venue
+same landmark
+same event decoration
+same object
+same background
+same vehicle
+same clothing
+
+Example:
+
+Image A contains a distinctive venue interior.
+
+Image B contains a similar venue interior.
+
+
+Derived hypothesis:
+
+The posts may relate to the same location.
+
+This should be corroborated where possible.
+
+# 6. Text Extraction
+
+Visible text may be extracted from:
+
+signs
+posters
+screenshots
+event banners
+menus
+public usernames
+dates
+captions inside images
+
+OCR output should be treated as an observation with possible recognition errors.
+
+If OCR is uncertain:
+
+TEXT_UNCERTAIN
+
+Do not silently correct uncertain text into a different factual value.
+
+# 7. Location Clues
+
+Possible clues:
+
+landmarks
+street signs
+venue names
+event names
+geographic references
+recognizable architecture
+
+Location clues should not automatically establish where a person currently lives or is physically located.
+
+# 8. Event Detection
+
+Images may contain:
+
+concerts
+festivals
+sports events
+college events
+public gatherings
+conferences
+celebrations
+
+A recurring event can become a useful investigation lead.
 
 Example:
 
 ```text
-VIS-001
-
-Observation:
-Two people are visibly present in the image.
-
-Additional context:
-One person is identified by an Instagram tag.
-
-Do not conclude:
-The two people have a particular personal relationship.
+Image
+↓
+event name
+↓
+public event context
+↓
+other public posts
+↓
+recurring accounts
 ```
 
----
+# 9. Visual Similarity
 
-# 4. Repeated People
+Visual similarity is useful for candidate generation.
 
-Repeated appearance can be useful.
+Potential match signals:
 
-Example:
-
-```text
-Post A → Target + Person X
-Post B → Target + Person X
-Post C → Target + Person X
-```
-
-This produces:
-
-```text
-Target
-   │
-   └── REPEATED_APPEARANCE_WITH
-            │
-         Person X
-```
-
-This may justify further investigation.
+similar clothing
+similar hairstyle
+similar accessories
+similar background
+similar object
+similar environment
 
 However:
 
-```text
-Repeated appearance ≠ specific relationship
-```
+visual similarity ≠ confirmed identity
 
-Possible explanations include:
+Use stronger corroboration before making an identity claim.
 
-* friends
-* classmates
-* coworkers
-* teammates
-* relatives
-* event participants
-* members of the same community
-* repeated coincidence
-
-The investigator should avoid assigning a specific relationship without sufficient evidence.
-
----
-
-# 5. Locations
-
-Images can contain location clues.
-
-Look for:
-
-* landmarks
-* buildings
-* signs
-* street names
-* shop names
-* restaurant names
-* campus/building identifiers
-* recognizable public venues
-* geographic features
-* event banners
-
-Example:
-
-```text
-VIS-010
-
-Observation:
-A sign containing a venue name is visible.
-
-Derived entity:
-Venue X
-
-Possible relationship:
-Target SHARES_CONTEXT_WITH Venue X
-```
-
-A location should not be treated as proof that the target lives there.
-
----
-
-# 6. Text in Images
-
-Text embedded in images can be highly useful.
-
-Inspect:
-
-* signs
-* posters
-* event names
-* usernames
-* handles
-* dates
-* organization names
-* venue names
-* public contact information
-* hashtags
-* slogans
-* visible labels
-
-Represent extracted text separately:
-
-```text
-VIS-TEXT-001
-
-Image:
-Target post 14
-
-Observed text:
-"Event X — 12 August"
-
-Confidence:
-High
-```
-
-If text is unclear, mark it as uncertain rather than inventing missing characters.
-
----
-
-# 7. Objects
-
-Objects can reveal context.
-
-Examples:
-
-* sports equipment
-* musical instruments
-* uniforms
-* event badges
-* books
-* trophies
-* artwork
-* vehicles
-* distinctive public objects
-
-Example:
-
-```text
-VIS-OBJ-001
-
-Observation:
-A cricket tournament banner and team uniform are visible.
-
-Possible context:
-Sports event.
-
-Confidence:
-Moderate
-```
-
-Do not infer ownership merely because an object appears near a person.
-
----
-
-# 8. Events
-
-Images may provide evidence that multiple accounts participated in the same event.
-
-Look for:
-
-* event banners
-* venue decorations
-* stage/background
-* event hashtags
-* dates
-* organization logos
-* matching event imagery
-
-Example:
-
-```text
-Target post → Event X
-Account A post → Event X
-Account B post → Event X
-```
-
-This can create:
-
-```text
-Target
-  │
-  └── SHARES_CONTEXT_WITH
-          │
-       Event X
-          │
-     ┌────┴────┐
-     ▼         ▼
- Account A   Account B
-```
-
-This establishes shared context, not a specific personal relationship.
-
----
-
-# 9. Background Consistency
-
-Background details can sometimes connect otherwise separate posts.
-
-Compare:
-
-* buildings
-* walls
-* signs
-* furniture
-* stage layouts
-* landscapes
-* decorations
-* venue interiors
-* distinctive objects
-
-Example:
-
-```text
-Image A → distinctive stage
-Image B → same distinctive stage
-```
-
-Possible conclusion:
-
-```text
-The images may have been taken at the same venue or event.
-```
-
-Do not claim exact identity unless the evidence is strong enough.
-
----
-
-# 10. Profile Pictures
-
-Profile pictures may help generate entity-resolution hypotheses.
-
-For example:
-
-```text
-Account A
-      ↓
-Profile image appears visually similar
-      ↓
-Account B
-```
-
-Record:
-
-```text
-POSSIBLE_SAME_ENTITY
-```
-
-Do not automatically conclude:
-
-```text
-Account A = Account B
-```
-
-Visual similarity can produce false matches.
-
-Use additional public evidence whenever possible.
-
----
-
-# 11. Cross-Image Comparison
-
-When comparing images, separate:
-
-### Direct visual observation
-
-```text
-"The same-looking jacket appears in both images."
-```
-
-from:
-
-### Interpretation
-
-```text
-"The images may have been taken during the same event."
-```
-
-from:
-
-### Identity claim
-
-```text
-"The person is definitely the same individual."
-```
-
-These are different confidence levels.
-
-The investigator should not collapse them into one statement.
-
----
-
-# 12. Image + Text + Account Context
-
-Images become much more useful when combined with surrounding Instagram data.
-
-Example:
-
-```text
-Image:
-Target and Person X appear together.
-
-Caption:
-Event X
-
-Tag:
-Person X
-
-Date:
-August 12
-
-Account X:
-Also posted Event X.
-```
-
-This produces several independent evidence categories:
-
-```text
-VISUAL
-TEXTUAL
-TEMPORAL
-ACCOUNT
-```
-
-Together they may substantially strengthen the **shared event/context** hypothesis.
-
----
-
-# 13. Image + Recurring Entity
-
-Suppose:
-
-```text
-Post 1:
-Target + Location X
-
-Post 2:
-Target + Location X
-
-Post 3:
-Account A + Location X
-
-Post 4:
-Target + Account A + Location X
-```
-
-The investigation should recognize the recurring entity:
-
-```text
-Location X
-```
-
-and connect it to the graph.
-
-Possible graph:
-
-```text
-Target ─────── Location X ─────── Account A
-   │                                  │
-   └──────── appears with ───────────┘
-```
-
-The system should then investigate whether additional evidence supports the association.
-
----
-
-# 14. Visual Evidence Independence
-
-Do not double-count multiple images from the same event.
-
-Example:
-
-```text
-Image 1
-Image 2
-Image 3
-```
-
-If all three are from the same event, they may represent one underlying event rather than three independent relationship signals.
-
-Record:
-
-```text
-EVENT-001
-```
-
-and associate the images with that event.
-
-This prevents artificial inflation of evidence strength.
-
----
-
-# 15. Image Confidence
-
-Use qualitative confidence.
-
-### High
-
-The visual observation is clear and directly visible.
-
-Example:
-
-```text
-A readable event name is visible.
-```
-
-### Moderate
-
-The observation is reasonably clear but has some ambiguity.
-
-Example:
-
-```text
-The venue appears consistent with another image.
-```
-
-### Low
-
-The observation depends heavily on visual interpretation.
-
-Example:
-
-```text
-A person may be the same person seen in another image.
-```
-
----
-
-# 16. What Images Must Not Establish Alone
-
-An image alone should generally not be used to establish:
-
-* exact personal relationships
-* romantic relationships
-* family relationships
-* private identity
-* home address
-* sensitive personal characteristics
-* motives
-* private activities
-
-Instead, record the observable fact.
-
-For example:
-
-```text
-GOOD:
-"Two accounts appear together in three public posts."
-
-BAD:
-"They are definitely dating."
-```
-
----
-
-# 17. Visual False Positives
-
-The investigator must consider:
-
-### Similar-looking people
-
-Two people may look similar.
-
-### Similar locations
-
-Two venues may have similar interiors.
-
-### Reused images
-
-The same image may be reposted.
-
-### Old images
-
-A post may not represent the current situation.
-
-### Edited images
-
-Images may be cropped, filtered, or modified.
-
-### Group events
-
-People appearing together may have no close relationship.
-
-### Coincidental objects
-
-Similar objects do not necessarily indicate shared ownership.
-
-These possibilities should be considered before strengthening a hypothesis.
-
----
-
-# 18. Image Investigation Priority
-
-Prioritize images that have:
-
-```text
-Multiple identifiable entities
-+
-Clear contextual information
-+
-Potential connection to an existing hypothesis
-```
-
-High-value example:
-
-```text
-Target image
-+
-Account A visibly present
-+
-Recognizable event
-+
-Date
-+
-Account A independently posted same event
-```
-
-Low-value example:
-
-```text
-Generic landscape
-with no identifiable context.
-```
-
----
-
-# 19. Image Evidence Record
-
-Use this structure:
-
-```text
-IMAGE-001
-
-Source:
-Instagram post/profile/story/highlight
-
-Subject:
-Target / Account A / Other entity
-
-Visual observations:
-- ...
-- ...
-- ...
-
-Text extracted:
-- ...
-
-Entities identified:
-- Person X
-- Location Y
-- Event Z
+# 10. Image Relationships
 
 Possible relationships:
-- APPEARS_WITH
-- SHARES_CONTEXT_WITH
-- POSSIBLE_SAME_ENTITY
 
-Confidence:
-Low / Moderate / High
+IMAGE → CONTAINS → OBJECT
+IMAGE → CONTAINS → TEXT
+IMAGE → SHOWS → PLACE
+IMAGE → REFERENCES → EVENT
+IMAGE → POSSIBLY_MATCHES → IMAGE
+IMAGE → POSSIBLY_CONTAINS_SAME_PERSON_AS → IMAGE
 
-Supporting evidence:
-OBS-001
-OBS-004
+Use uncertain relationship names when certainty is unavailable.
 
-Limitations:
-...
-```
+# 11. Image + Network Correlation
 
----
+Example:
 
-# 20. Image Investigation Questions
+Image A:
+Account A appears at Event E.
 
-When inspecting an image, ask:
+Image B:
+Account B appears at Event E.
 
-```text
-1. What can I directly see?
+Network:
+A follows B.
 
-2. Is there readable text?
+This provides multiple related observations.
 
-3. Are there identifiable public entities?
+It does not automatically establish a personal relationship.
 
-4. Is there a recognizable location or event?
+The investigation should ask:
 
-5. Does someone or something recur elsewhere?
+Is Event E publicly known to involve both accounts?
+Is there independent interaction?
+Does the pattern repeat?
+Are there alternative explanations?
+# 12. Image + Temporal Correlation
 
-6. Does this image connect two existing graph nodes?
+Example:
 
-7. Is there a temporal clue?
+Image A → Event E → date D
+Image B → Event E → date D
 
-8. Could this observation have an innocent alternative explanation?
+This may support shared event participation.
 
-9. Is this evidence independent of evidence already collected?
+Do not infer exact physical presence when timestamps are uncertain.
 
-10. What hypothesis would this evidence actually help distinguish?
-```
+# 13. Image Evidence Independence
 
----
+Multiple screenshots of the same image are one underlying source.
 
-# 21. Image Analysis Rule
+Do not count:
 
-The investigator should treat an image as:
+original image
+screenshot
+OCR result
+AI description
 
-```text
-A source of observations
-        ↓
-not
-A source of automatic conclusions
-```
+as independent corroboration.
 
-The strongest image-based reasoning combines:
+# 14. Image Limitations
 
-```text
-Visual evidence
-+
-Textual evidence
-+
-Temporal evidence
-+
-Account relationships
-+
-Independent corroboration
-```
+Image analysis may be affected by:
 
-The objective is to extract **defensible contextual relationships**, while preserving uncertainty around anything that cannot be directly established.
+cropping
+compression
+lighting
+angle
+occlusion
+filters
+low resolution
+OCR errors
+AI perception errors
+
+Record uncertainty when these affect interpretation.
+
+# 15. Forbidden Shortcuts
+
+Do not conclude identity from:
+
+face resemblance alone
+similar username alone
+similar clothing alone
+same location alone
+same recommendation alone
+
+These can generate leads only.
+
+# 16. Final Rule
+
+Images should answer:
+
+"What is visibly present?"
+
+before asking:
+
+"What might this mean?"
+
+Observation comes before interpretation.
