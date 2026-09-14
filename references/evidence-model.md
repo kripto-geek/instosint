@@ -22,15 +22,21 @@ The evidence model exists to prevent:
 
 No source:
 
-    → No observation.
+```text
+→ No observation.
+```
 
 No observation:
 
-    → No derived relationship.
+```text
+→ No derived relationship.
+```
 
 No supporting evidence:
 
-    → No evidence-backed hypothesis.
+```text
+→ No evidence-backed hypothesis.
+```
 
 The agent must never fill missing information with assumptions.
 
@@ -40,19 +46,21 @@ The agent must never fill missing information with assumptions.
 
 INSTOSINT uses the following pipeline:
 
-    SOURCE
-      ↓
-    OBSERVATION
-      ↓
-    DERIVED RELATIONSHIP
-      ↓
-    INFERENCE
-      ↓
-    HYPOTHESIS
-      ↓
-    SUPPORTED / CONTRADICTED / UNRESOLVED
-      ↓
-    CONCLUSION
+```text
+SOURCE
+  ↓
+OBSERVATION
+  ↓
+DERIVED RELATIONSHIP
+  ↓
+INFERENCE
+  ↓
+HYPOTHESIS
+  ↓
+SUPPORTED / CONTRADICTED / UNRESOLVED
+  ↓
+CONCLUSION
+```
 
 Each level has a different meaning.
 
@@ -86,27 +94,28 @@ A hypothetical source does not count.
 
 Conceptually, a source record may contain:
 
-    SOURCE-001
+```text
+SOURCE-001
 
-    type:
-        instagram_profile
+type:
+    instagram_profile
 
-    target:
-        @example
+target:
+    @example
 
-    retrieved_at:
-        timestamp if available
+retrieved_at:
+    timestamp if available
 
-    access_status:
-        AVAILABLE
+access_status:
+    AVAILABLE
 
-    data:
-        actual retrieved data
+data:
+    actual retrieved data
+```
 
 The exact storage format may vary by implementation.
 
-The important requirement is that observations can be traced back to
-their source.
+The important requirement is that observations can be traced back to their source.
 
 ---
 
@@ -116,13 +125,15 @@ An observation is a statement directly supported by retrieved source data.
 
 Examples:
 
-    @target publicly follows @account_x.
+```text
+@target publicly follows @account_x.
 
-    @target has a public post containing a visible location tag.
+@target has a public post containing a visible location tag.
 
-    @target commented on a public post by @account_x.
+@target commented on a public post by @account_x.
 
-    @account_x and @target appear together in a public image.
+@account_x and @target appear together in a public image.
+```
 
 Observations must describe what was observed, not what it supposedly means.
 
@@ -132,47 +143,49 @@ Observations must describe what was observed, not what it supposedly means.
 
 Every factual observation should contain:
 
-    id
-    source
-    subject
-    object/property
-    observation
-    type
-    reliability
+- id
+- source
+- subject
+- object/property
+- observation
+- type
+- reliability
 
 When useful, also include:
 
-    timestamp
-    source location
-    independence group
-    notes
-    related evidence IDs
+- timestamp
+- source location
+- independence group
+- notes
+- related evidence IDs
 
 Example:
 
-    ID:
-        OBS-001
+```text
+ID:
+    OBS-001
 
-    Source:
-        SOURCE-001
+Source:
+    SOURCE-001
 
-    Subject:
-        @target
+Subject:
+    @target
 
-    Relationship:
-        FOLLOWS
+Relationship:
+    FOLLOWS
 
-    Object:
-        @account_x
+Object:
+    @account_x
 
-    Observation:
-        @target publicly follows @account_x.
+Observation:
+    @target publicly follows @account_x.
 
-    Type:
-        DIRECT_OBSERVATION
+Type:
+    DIRECT_OBSERVATION
 
-    Reliability:
-        HIGH
+Reliability:
+    HIGH
+```
 
 ---
 
@@ -186,9 +199,9 @@ Information directly visible in the retrieved source.
 
 Example:
 
-    A profile's visible following list contains @account_x.
-
----
+```text
+A profile's visible following list contains @account_x.
+```
 
 ## DERIVED_OBSERVATION
 
@@ -196,11 +209,11 @@ Information calculated or constructed from multiple direct observations.
 
 Example:
 
-    @target and @account_x share several publicly visible followers.
+```text
+@target and @account_x share several publicly visible followers.
+```
 
 The underlying follower observations must exist.
-
----
 
 ## VISUAL_OBSERVATION
 
@@ -208,11 +221,11 @@ A factual observation obtained from an image.
 
 Example:
 
-    @target appears in a public image together with another visible person.
+```text
+@target appears in a public image together with another visible person.
+```
 
 Do not automatically infer identity or relationship from this observation.
-
----
 
 ## TEXTUAL_OBSERVATION
 
@@ -220,11 +233,11 @@ A factual observation derived from visible text.
 
 Example:
 
-    A public caption contains the name of Event X.
+```text
+A public caption contains the name of Event X.
+```
 
 The text must actually be present in the retrieved source.
-
----
 
 ## INFERENCE
 
@@ -232,11 +245,11 @@ An interpretation derived from one or more observations.
 
 Example:
 
-    @target and @account_x show a recurring public interaction pattern.
+```text
+@target and @account_x show a recurring public interaction pattern.
+```
 
 Inference is not direct observation.
-
----
 
 ## HYPOTHESIS
 
@@ -244,12 +257,12 @@ A possible explanation that is currently being investigated.
 
 Example:
 
-    @account_x may represent a particularly relevant recurring
-    connection for @target.
+```text
+@account_x may represent a particularly relevant recurring
+connection for @target.
+```
 
 A hypothesis must not be presented as established fact.
-
----
 
 ## DATA_AVAILABILITY
 
@@ -257,7 +270,9 @@ A record describing whether required data was available.
 
 Example:
 
-    The public following surface could not be retrieved.
+```text
+The public following surface could not be retrieved.
+```
 
 This is not evidence that the following relationship does not exist.
 
@@ -267,12 +282,12 @@ This is not evidence that the following relationship does not exist.
 
 Evidence records may have statuses such as:
 
-    OBSERVED
-    DERIVED
-    INFERRED
-    HYPOTHETICAL
-    CONTRADICTED
-    UNRESOLVED
+- OBSERVED
+- DERIVED
+- INFERRED
+- HYPOTHETICAL
+- CONTRADICTED
+- UNRESOLVED
 
 These describe the epistemic status of the record.
 
@@ -284,28 +299,36 @@ Reliability describes how trustworthy the underlying observation is.
 
 Use:
 
-    LOW
-    MODERATE
-    HIGH
-    UNKNOWN
+- LOW
+- MODERATE
+- HIGH
+- UNKNOWN
 
 Reliability is NOT the same thing as hypothesis confidence.
 
 For example:
 
-    A visible public follow relationship
+```text
+A visible public follow relationship
+```
 
 may have:
 
-    Reliability: HIGH
+```text
+Reliability: HIGH
+```
 
 while the hypothesis:
 
-    "This account is especially important to the target"
+```text
+"This account is especially important to the target"
+```
 
 may still have:
 
-    Confidence: LOW
+```text
+Confidence: LOW
+```
 
 ---
 
@@ -315,10 +338,10 @@ Relationship strength describes the support for a graph relationship.
 
 Use:
 
-    UNKNOWN
-    WEAK
-    MODERATE
-    STRONG
+- UNKNOWN
+- WEAK
+- MODERATE
+- STRONG
 
 Strength should consider:
 
@@ -342,21 +365,25 @@ Multiple observations can originate from the same underlying event.
 
 Example:
 
-    Target appears in five photographs from Event X.
+```text
+Target appears in five photographs from Event X.
+```
 
 These five observations may all represent:
 
-    ONE_EVENT_CONTEXT
+```text
+ONE_EVENT_CONTEXT
+```
 
 rather than five independent confirmations.
 
 Similarly:
 
-    Target likes ten posts from Account A.
+```text
+Target likes ten posts from Account A.
+```
 
-This is useful evidence of recurring interaction, but the ten likes should
-not automatically be treated as ten independent confirmations of every
-hypothesis involving Account A.
+This is useful evidence of recurring interaction, but the ten likes should not automatically be treated as ten independent confirmations of every hypothesis involving Account A.
 
 ---
 
@@ -366,50 +393,59 @@ When evidence is strongly correlated, assign an independence group.
 
 Example:
 
-    OBS-021
-    OBS-022
-    OBS-023
+```text
+OBS-021
+OBS-022
+OBS-023
+```
 
 all originate from:
 
-    EVENT-X
+```text
+EVENT-X
+```
 
 Therefore:
 
-    independence_group: EVENT-X
+```text
+independence_group: EVENT-X
+```
 
 Another group might be:
 
-    INTERACTION-PATTERN-ACCOUNT-A
+```text
+INTERACTION-PATTERN-ACCOUNT-A
+```
 
-The investigation should avoid artificially increasing confidence by
-counting correlated observations multiple times.
+The investigation should avoid artificially increasing confidence by counting correlated observations multiple times.
 
 ---
 
 # 13. Corroboration
 
-Strong conclusions should preferably have evidence from different
-categories.
+Strong conclusions should preferably have evidence from different categories.
 
 For example:
 
-    public follow
-        +
-    repeated interaction
-        +
-    shared event
-        +
-    recurring visual context
+```text
+public follow
+    +
+repeated interaction
+    +
+shared event
+    +
+recurring visual context
+```
 
 is generally more informative than:
 
-    many likes
+```text
+many likes
+```
 
 alone.
 
-Cross-category corroboration is valuable because it reduces dependence
-on one type of signal.
+Cross-category corroboration is valuable because it reduces dependence on one type of signal.
 
 ---
 
@@ -419,18 +455,22 @@ Every actual evidence record receives a unique identifier.
 
 Recommended format:
 
-    OBS-001
-    OBS-002
-    OBS-003
+```text
+OBS-001
+OBS-002
+OBS-003
+```
 
 for observations.
 
 Other prefixes may be used for other record types:
 
-    REL-001
-    HYP-001
-    LEAD-001
-    SRC-001
+```text
+REL-001
+HYP-001
+LEAD-001
+SRC-001
+```
 
 Do not create IDs for evidence that does not exist.
 
@@ -442,27 +482,33 @@ Do not pre-populate fake observations merely to make a table look complete.
 
 The following are forbidden as factual values:
 
-    Account A
-    Account B
-    Account C
-    Person X
-    Event X
-    [Number]
-    [username]
-    [bio text]
-    [display name]
+- Account A
+- Account B
+- Account C
+- Person X
+- Event X
+- [Number]
+- [username]
+- [bio text]
+- [display name]
 
 unless the surrounding section is explicitly marked:
 
-    [SYNTHETIC EXAMPLE]
+```text
+[SYNTHETIC EXAMPLE]
+```
 
 For real investigation output, missing values must be represented as:
 
-    UNKNOWN
+```text
+UNKNOWN
+```
 
 or:
 
-    UNKNOWN — DATA NOT AVAILABLE
+```text
+UNKNOWN — DATA NOT AVAILABLE
+```
 
 ---
 
@@ -470,20 +516,14 @@ or:
 
 Every evidence record should answer:
 
-    Where did this come from?
+- Where did this come from?
+- What exactly was observed?
+- When was it observed?
+- What entity does it concern?
+- What relationship/property does it establish?
+- How reliable is it?
 
-    What exactly was observed?
-
-    When was it observed?
-
-    What entity does it concern?
-
-    What relationship/property does it establish?
-
-    How reliable is it?
-
-If these questions cannot be answered, the claim should not be treated
-as verified evidence.
+If these questions cannot be answered, the claim should not be treated as verified evidence.
 
 ---
 
@@ -491,28 +531,30 @@ as verified evidence.
 
 A conceptual evidence object:
 
-    {
-        id,
-        source,
-        subject,
-        object,
-        relationship,
-        observation,
-        type,
-        reliability,
-        independence_group,
-        timestamp,
-        notes
-    }
+```text
+{
+    id,
+    source,
+    subject,
+    object,
+    relationship,
+    observation,
+    type,
+    reliability,
+    independence_group,
+    timestamp,
+    notes
+}
+```
 
 Not every field must be populated for every evidence type.
 
 However:
 
-    id
-    source
-    observation
-    type
+- id
+- source
+- observation
+- type
 
 should normally be present for factual observations.
 
@@ -522,32 +564,44 @@ should normally be present for factual observations.
 
 Consider:
 
-    Source:
-    Public Instagram post.
+```text
+Source:
+Public Instagram post.
 
-    Observation:
-    @target and @account_x appear together in the image.
+Observation:
+@target and @account_x appear together in the image.
+```
 
 This is a:
 
-    VISUAL_OBSERVATION
+```text
+VISUAL_OBSERVATION
+```
 
 Possible inference:
 
-    The two accounts have a public association.
+```text
+The two accounts have a public association.
+```
 
 This is:
 
-    INFERENCE
+```text
+INFERENCE
+```
 
 Possible hypothesis:
 
-    Their recurring public association may indicate a meaningful
-    connection.
+```text
+Their recurring public association may indicate a meaningful
+connection.
+```
 
 This is:
 
-    HYPOTHESIS
+```text
+HYPOTHESIS
+```
 
 Do not report the hypothesis as though it were the observation.
 
@@ -559,25 +613,26 @@ Graph relationships must reference evidence.
 
 Example:
 
-    REL-001
+```text
+REL-001
 
-    Subject:
-        @target
+Subject:
+    @target
 
-    Relationship:
-        FOLLOWS
+Relationship:
+    FOLLOWS
 
-    Object:
-        @account_x
+Object:
+    @account_x
 
-    Strength:
-        STRONG
+Strength:
+    STRONG
 
-    Supporting evidence:
-        OBS-001
+Supporting evidence:
+    OBS-001
+```
 
-The graph edge should not exist independently of its supporting evidence
-unless explicitly marked as hypothetical.
+The graph edge should not exist independently of its supporting evidence unless explicitly marked as hypothetical.
 
 ---
 
@@ -585,34 +640,36 @@ unless explicitly marked as hypothetical.
 
 A hypothesis should contain:
 
-    id
-    statement
-    status
-    supporting evidence
-    contradicting evidence
-    alternative explanations
-    notes
+- id
+- statement
+- status
+- supporting evidence
+- contradicting evidence
+- alternative explanations
+- notes
 
 Example:
 
-    HYP-001
+```text
+HYP-001
 
-    Statement:
-        @target and @account_x have a recurring public association.
+Statement:
+    @target and @account_x have a recurring public association.
 
-    Status:
-        INVESTIGATING
+Status:
+    INVESTIGATING
 
-    Supporting:
-        OBS-001
-        OBS-008
-        OBS-014
+Supporting:
+    OBS-001
+    OBS-008
+    OBS-014
 
-    Contradicting:
-        OBS-021
+Contradicting:
+    OBS-021
 
-    Alternatives:
-        Shared event/community may explain the observed pattern.
+Alternatives:
+    Shared event/community may explain the observed pattern.
+```
 
 ---
 
@@ -620,30 +677,32 @@ Example:
 
 Use the following lifecycle:
 
-    UNPROPOSED
-        ↓
-    POSSIBLE
-        ↓
-    INVESTIGATING
-        ↓
-    SUPPORTED
-        ↓
-    STRONGLY_SUPPORTED
+```text
+UNPROPOSED
+    ↓
+POSSIBLE
+    ↓
+INVESTIGATING
+    ↓
+SUPPORTED
+    ↓
+STRONGLY_SUPPORTED
+```
 
 Alternative terminal states:
 
-    CONTRADICTED
-    UNRESOLVED
+```text
+CONTRADICTED
+UNRESOLVED
+```
 
-A hypothesis should not become SUPPORTED merely because multiple similar
-observations exist.
+A hypothesis should not become SUPPORTED merely because multiple similar observations exist.
 
 ---
 
 # 22. Supporting Evidence
 
-Evidence supports a hypothesis when it makes the hypothesis more plausible
-than it was before.
+Evidence supports a hypothesis when it makes the hypothesis more plausible than it was before.
 
 Supporting evidence should be evaluated for:
 
@@ -680,19 +739,21 @@ When evidence supports multiple interpretations, record alternatives.
 
 Example:
 
-    Observation:
-    Two accounts repeatedly appear at Event X.
+```text
+Observation:
+Two accounts repeatedly appear at Event X.
 
 Possible explanations:
 
-    H1:
-    They have a recurring personal association.
+H1:
+They have a recurring personal association.
 
-    H2:
-    They belong to the same public community.
+H2:
+They belong to the same public community.
 
-    H3:
-    They repeatedly attend the same event series.
+H3:
+They repeatedly attend the same event series.
+```
 
 The investigation should seek evidence that distinguishes these hypotheses.
 
@@ -706,12 +767,13 @@ An observation can be true but low-value.
 
 For example:
 
-    Another like from Account A
+```text
+Another like from Account A
+```
 
 may provide little new information if many similar likes already exist.
 
-A new independent observation that distinguishes competing hypotheses may
-be significantly more valuable.
+A new independent observation that distinguishes competing hypotheses may be significantly more valuable.
 
 The investigation should prioritize evidence that reduces uncertainty.
 
@@ -719,12 +781,13 @@ The investigation should prioritize evidence that reduces uncertainty.
 
 # 26. Entity Resolution
 
-Entity resolution concerns whether two observed entities may represent
-the same real-world entity.
+Entity resolution concerns whether two observed entities may represent the same real-world entity.
 
 Possible relationship:
 
-    POSSIBLE_SAME_ENTITY
+```text
+POSSIBLE_SAME_ENTITY
+```
 
 This should remain uncertain until adequately supported.
 
@@ -745,15 +808,14 @@ Weak similarity alone does not establish identity.
 
 Possible states:
 
-    UNKNOWN
-    POSSIBLE
-    LIKELY
-    RESOLVED
-    CONTRADICTED
-    UNRESOLVED
+- UNKNOWN
+- POSSIBLE
+- LIKELY
+- RESOLVED
+- CONTRADICTED
+- UNRESOLVED
 
-"RESOLVED" should only be used when the available evidence justifies
-treating the entities as the same for the investigation.
+"RESOLVED" should only be used when the available evidence justifies treating the entities as the same for the investigation.
 
 ---
 
@@ -761,25 +823,31 @@ treating the entities as the same for the investigation.
 
 Visual evidence should contain a distinction between:
 
-    WHAT IS VISIBLE
+```text
+WHAT IS VISIBLE
+```
 
 and:
 
-    WHAT IT MAY MEAN
+```text
+WHAT IT MAY MEAN
+```
 
 Example:
 
-    Visual observation:
-    The same visually distinctive person appears in two public posts.
+```text
+Visual observation:
+The same visually distinctive person appears in two public posts.
 
 Possible inference:
-    The person may be a recurring participant in the target's public
-    activity.
+The person may be a recurring participant in the target's public
+activity.
 
 Identity claim:
-    "This is definitely Person X."
+"This is definitely Person X."
 
 The final claim requires additional evidence.
+```
 
 ---
 
@@ -806,41 +874,41 @@ Recommendation observations should have their own provenance.
 
 Example:
 
-    OBS-030
+```text
+OBS-030
 
-    Source:
-        Recommendation surface
+Source:
+    Recommendation surface
 
-    Subject:
-        @target
+Subject:
+    @target
 
-    Object:
-        @account_x
+Object:
+    @account_x
 
-    Relationship:
-        RECOMMENDED_WITH
+Relationship:
+    RECOMMENDED_WITH
 
-    Observation:
-        @account_x appeared in the recommendation context observed
-        while investigating @target.
+Observation:
+    @account_x appeared in the recommendation context observed
+    while investigating @target.
 
-    Type:
-        DIRECT_OBSERVATION
+Type:
+    DIRECT_OBSERVATION
 
-    Reliability:
-        MODERATE
+Reliability:
+    MODERATE
+```
 
 The interpretation must remain limited.
 
+```text
 Recommendation:
-
     ≠ follow
-
     ≠ mutual connection
-
     ≠ known relationship
-
     ≠ proof of association
+```
 
 ---
 
@@ -848,31 +916,39 @@ Recommendation:
 
 If data cannot be retrieved:
 
-    DATA_AVAILABILITY
+```text
+DATA_AVAILABILITY
+```
 
 should be used where appropriate.
 
 Example:
 
-    DATA-001
+```text
+DATA-001
 
-    Source:
-        Following surface
+Source:
+    Following surface
 
-    Status:
-        UNAVAILABLE
+Status:
+    UNAVAILABLE
 
-    Observation:
-        The following list could not be retrieved from the available
-        authorized source.
+Observation:
+    The following list could not be retrieved from the available
+    authorized source.
+```
 
 This must NOT become:
 
-    "Target does not follow Account X."
+```text
+"Target does not follow Account X."
+```
 
 The correct state is:
 
-    UNKNOWN
+```text
+UNKNOWN
+```
 
 ---
 
@@ -882,18 +958,24 @@ Missing evidence should never be silently converted into negative evidence.
 
 Bad:
 
-    No public interaction was retrieved,
-    therefore the accounts do not interact.
+```text
+No public interaction was retrieved,
+therefore the accounts do not interact.
+```
 
 Good:
 
-    No public interaction was identified in the available retrieved
-    data.
+```text
+No public interaction was identified in the available retrieved
+data.
+```
 
 Better:
 
-    No public interaction was identified in the retrieved data;
-    this does not establish that no interaction exists.
+```text
+No public interaction was identified in the retrieved data;
+this does not establish that no interaction exists.
+```
 
 ---
 
@@ -901,37 +983,38 @@ Better:
 
 Evidence quality should consider:
 
-    Source reliability
-    Directness
-    Specificity
-    Independence
-    Recurrence
-    Corroboration
-    Temporal relevance
-    Contradiction
+- Source reliability
+- Directness
+- Specificity
+- Independence
+- Recurrence
+- Corroboration
+- Temporal relevance
+- Contradiction
 
 A useful conceptual model is:
 
-    Evidence Quality
-        =
-    Source Quality
-        +
-    Directness
-        +
-    Independence
-        +
-    Specificity
-        +
-    Corroboration
-        -
-    Contradiction
-        -
-    Ambiguity
+```text
+Evidence Quality
+    =
+Source Quality
+    +
+Directness
+    +
+Independence
+    +
+Specificity
+    +
+Corroboration
+    -
+Contradiction
+    -
+Ambiguity
+```
 
 This is a reasoning framework, not a mathematical scoring formula.
 
-Do not invent numerical probabilities unless the system has a properly
-calibrated statistical model.
+Do not invent numerical probabilities unless the system has a properly calibrated statistical model.
 
 ---
 
@@ -939,24 +1022,30 @@ calibrated statistical model.
 
 Use qualitative confidence:
 
-    LOW
-    MODERATE
-    HIGH
-    VERY HIGH
+- LOW
+- MODERATE
+- HIGH
+- VERY HIGH
 
 Avoid invented percentages such as:
 
-    87% likely
+```text
+87% likely
+```
 
 unless the system has a validated basis for calculating that probability.
 
 Prefer:
 
-    "Moderate confidence"
+```text
+"Moderate confidence"
+```
 
 over:
 
-    "73% confidence"
+```text
+"73% confidence"
+```
 
 when no calibrated probability model exists.
 
@@ -966,22 +1055,19 @@ when no calibrated probability model exists.
 
 The evidence ledger should allow the investigator to answer:
 
-    What did we observe?
-
-    Where did we observe it?
-
-    What relationship did it create?
-
-    Which hypotheses does it support?
-
-    Which hypotheses does it contradict?
-
-    Is the evidence independent?
+- What did we observe?
+- Where did we observe it?
+- What relationship did it create?
+- Which hypotheses does it support?
+- Which hypotheses does it contradict?
+- Is the evidence independent?
 
 Conceptual structure:
 
-    | ID | Source | Subject | Object | Type | Reliability | Status |
-    |----|--------|---------|--------|------|-------------|--------|
+```text
+| ID | Source | Subject | Object | Type | Reliability | Status |
+|----|--------|---------|--------|------|-------------|--------|
+```
 
 The ledger should contain actual evidence only.
 
@@ -991,25 +1077,27 @@ The ledger should contain actual evidence only.
 
 The evidence graph is a structured representation of:
 
-    entities
-    relationships
-    evidence
-    hypotheses
-    uncertainty
+- entities
+- relationships
+- evidence
+- hypotheses
+- uncertainty
 
 Example:
 
-    @target
-       |
-       | FOLLOWS
-       | supported by OBS-001
-       v
-    @account_x
-       |
-       | APPEARS_AT
-       | supported by OBS-014
-       v
-    Event X
+```text
+@target
+   |
+   | FOLLOWS
+   | supported by OBS-001
+   v
+@account_x
+   |
+   | APPEARS_AT
+   | supported by OBS-014
+   v
+Event X
+```
 
 The graph is not itself proof of the interpretation.
 
@@ -1021,14 +1109,17 @@ These are different.
 
 Graph evidence:
 
-    Target → FOLLOWS → Account X
+```text
+Target → FOLLOWS → Account X
+```
 
 Graph inference:
 
-    Target and Account X may have a recurring public association.
+```text
+Target and Account X may have a recurring public association.
+```
 
-The second must reference evidence supporting the first and any additional
-observations required.
+The second must reference evidence supporting the first and any additional observations required.
 
 ---
 
@@ -1055,22 +1146,25 @@ The historical observation should remain traceable.
 
 If an earlier observation is discovered to be incorrect:
 
-    mark it as corrected/invalidated
+```text
+mark it as corrected/invalidated
+```
 
 Do not silently rewrite history.
 
 Example:
 
-    OBS-014
+```text
+OBS-014
 
-    Status:
-        INVALIDATED
+Status:
+    INVALIDATED
 
-    Reason:
-        Original image was incorrectly associated with the target.
+Reason:
+    Original image was incorrectly associated with the target.
+```
 
-Any relationship or hypothesis depending exclusively on OBS-014 must then
-be reassessed.
+Any relationship or hypothesis depending exclusively on OBS-014 must then be reassessed.
 
 ---
 
@@ -1093,13 +1187,13 @@ Stopping is preferable to generating speculative conclusions.
 
 The final report must always distinguish:
 
-    OBSERVED
-    DERIVED
-    INFERRED
-    HYPOTHESIZED
-    SUPPORTED
-    CONTRADICTED
-    UNKNOWN
+- OBSERVED
+- DERIVED
+- INFERRED
+- HYPOTHESIZED
+- SUPPORTED
+- CONTRADICTED
+- UNKNOWN
 
 The investigator must never present one category as another.
 
@@ -1109,5 +1203,4 @@ The fundamental rule is:
 
 And:
 
-> If the evidence does not establish the conclusion, the conclusion
-> remains unresolved.
+> If the evidence does not establish the conclusion, the conclusion remains unresolved.

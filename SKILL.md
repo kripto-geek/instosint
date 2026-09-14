@@ -1,1126 +1,942 @@
 ---
 name: instosint
-description: Instagram-focused public-data investigation skill. Use when investigating publicly observable Instagram accounts, connections, interactions, recurring entities, visual context, and relationship hypotheses. Builds a traceable evidence graph, recursively investigates high-value leads, and clearly separates observations from hypotheses and conclusions.
+description: Instagram-focused public-data investigation skill. Investigates publicly observable Instagram accounts, including private-account surrounding signals such as recommendations, mutuals, public network context, interactions, recurring entities, and visual context. Builds a traceable evidence graph, recursively investigates high-value leads, and separates observations from hypotheses and conclusions.
 ---
 
 # INSTOSINT
 
-INSTOSINT is an Instagram-focused investigation methodology for agents.
+INSTOSINT is an Instagram-focused public-data investigation methodology.
 
-Its purpose is to investigate publicly observable Instagram information,
-build a traceable evidence graph, discover meaningful connections, generate
-and test hypotheses, and determine what investigation step is most useful
-next.
+It is an investigation and reasoning system, not an access-control bypass mechanism.
 
-INSTOSINT is a reasoning and investigation framework.
-
-It is NOT an Instagram access mechanism.
-
-The agent must only reason over data that it has actually retrieved through
-an available authorized/public data source.
+The goal is to discover and explain publicly observable connections around an Instagram target, including targets whose own profile content is private or otherwise inaccessible.
 
 ---
 
-# 1. Core Objective
+# 1. Core Principle
 
-Given a target Instagram account, investigate relevant publicly observable
-information and construct an evidence-backed explanation of the meaningful
-relationships and patterns discovered around that account.
+INSTOSINT must never fabricate evidence.
 
-The objective is NOT:
+If information was not actually observed through an available authorized/public data source:
 
-- collecting as much data as possible
-- crawling every account
-- generating a large report
-- finding a predetermined relationship
-- confirming the investigator's initial suspicion
-- producing a conclusion at any cost
-
-The objective IS:
-
-> Build the strongest defensible explanation supported by the available
-> evidence while explicitly preserving uncertainty.
-
-The investigation should answer:
-
-1. What was actually observed?
-2. What relationships can be derived from those observations?
-3. What hypotheses could explain those relationships?
-4. What evidence supports or contradicts each hypothesis?
-5. What should be investigated next?
-6. What can and cannot be established?
-
----
-
-# 2. Non-Negotiable Evidence Rule
-
-## NEVER FABRICATE EVIDENCE
-
-The agent MUST NOT invent, assume, simulate, or template an Instagram
-observation as if it were real.
-
-An observation may only be recorded when its underlying source data was
-actually retrieved.
-
-Never fabricate:
-
-- usernames
-- accounts
-- followers
-- following relationships
-- mutual followers
-- likes
-- comments
-- mentions
-- tags
-- captions
-- bios
-- display names
-- profile information
-- recommendations
-- posts
-- images
-- image contents
-- locations
-- events
-- timestamps
-- linked accounts
-- relationships
-- identities
-- interaction counts
-
-Never convert a template into a factual finding.
-
-BAD:
-
-    Target follows Account A.
-
-when no following data was retrieved.
-
-BAD:
-
-    Account B appeared in recommendations.
-
-when no recommendation data was retrieved.
-
-BAD:
-
-    Target and Account C have 12 mutual followers.
-
-when no follower data was retrieved or calculated.
-
-BAD:
-
-    Target appears with Account D.
-
-when no image or tagged-post evidence supports this.
-
----
-
-# 3. No Placeholder Evidence
-
-The following MUST NEVER appear as factual investigation entities:
-
-    Account A
-    Account B
-    Account C
-    Person X
-    Event X
-    [Number]
-    [username]
-    [display name]
-    [bio text]
-    [location]
-
-These may only be used inside explicitly marked synthetic examples.
-
-When required information is unavailable, use:
-
-    UNKNOWN — DATA NOT AVAILABLE
-
-or an equivalent explicit data-availability statement.
+```text
+IT IS NOT EVIDENCE.
+```
 
 Unknown information must remain unknown.
 
-Do NOT replace missing information with a plausible-looking value.
+However:
 
----
+```text
+TARGET DATA UNAVAILABLE
+```
 
-# 4. Data Availability Gate
+does NOT automatically mean:
 
-Before creating any observation, the agent MUST establish:
+```text
+INVESTIGATION IMPOSSIBLE
+```
 
-1. What source contains the information?
-2. Was that source actually accessed?
-3. What exact information was retrieved?
-4. Can the observation be traced to the retrieved source?
+A target may have a private profile while Instagram still exposes publicly observable surrounding signals.
 
-If the answer to any of these is no, the observation MUST NOT be created.
+## 2. Private Target ≠ No Investigation
 
-The investigation should instead record a data limitation when useful.
+A private Instagram account may expose limited direct information while still producing observable platform context.
 
-Example:
+Examples may include:
 
-    STATUS: BLOCKED_NO_DATA
+- profile metadata
+- publicly visible account information
+- recommendation surfaces
+- mutual connections
+- suggested accounts
+- accounts surfaced around the target
+- public network relationships
+- publicly observable interactions involving other accounts
 
-    Target: @example
+The investigator must distinguish:
 
-    The required Instagram surface was not available through the
-    current authorized data source.
+```text
+TARGET'S PRIVATE CONTENT
+```
 
-    Observations: 0
-    Relationships: 0
-    Hypotheses: 0
+from:
 
-This is a valid investigation result.
+```text
+PUBLICLY OBSERVABLE CONTEXT AROUND THE TARGET
+```
 
----
+The former must not be accessed or bypassed.
 
-# 5. Instagram Access Boundary
+The latter may be investigated when genuinely observable.
 
-INSTOSINT does not bypass Instagram privacy or security controls.
+## 3. Public / Authorized Scope
 
-Do NOT:
+INSTOSINT may use:
+
+- publicly observable Instagram data
+- authorized data supplied by the user/tool
+- public account information
+- public posts
+- public comments
+- public likes when visible
+- public mentions
+- public tags
+- public hashtags
+- public recommendation/suggestion surfaces
+- public network relationships
+- public visual information
+
+INSTOSINT must NOT:
 
 - bypass private-account restrictions
-- circumvent authentication
-- defeat access controls
-- obtain restricted content
-- access private information
+- bypass authentication
+- bypass access controls
+- obtain private posts
+- obtain private followers/following through unauthorized means
 - use stolen credentials
-- attempt to reveal deleted/private content through unauthorized means
-- treat unavailable information as available
+- exploit vulnerabilities to obtain restricted data
+- pretend to be another user to gain access
 
-If the required information cannot be accessed through the available
-authorized/public data source, report the limitation.
+If the target is private, investigate only what is actually observable.
 
-The absence of retrieved data does NOT prove that the underlying
-relationship or information does not exist.
+## 4. Investigation Model
 
----
-
-# 6. Investigation Loop
-
-The canonical investigation loop is:
+The investigation follows:
 
 ```text
-    OBSERVE
-       ↓
-    VALIDATE SOURCE
-       ↓
-    RECORD
-       ↓
-    CONNECT
-       ↓
-    FORM HYPOTHESES
-       ↓
-    SELECT HIGH-VALUE LEAD
-       ↓
-    INVESTIGATE
-       ↓
-    CHALLENGE
-       ↓
-    UPDATE GRAPH
-       ↓
-    REASSESS
-       ↓
-    REPEAT OR STOP
+TARGET
+  ↓
+OBSERVABLE SURFACES
+  ↓
+OBSERVATIONS
+  ↓
+ENTITIES / RELATIONSHIPS
+  ↓
+HYPOTHESES
+  ↓
+HIGH-VALUE LEADS
+  ↓
+RECURSIVE INVESTIGATION
+  ↓
+CONTRADICTION CHECK
+  ↓
+EVIDENCE UPDATE
+  ↓
+CONCLUSION
 ```
 
-Every loop iteration must be grounded in actual available evidence.
+The target does not need to be fully accessible for this process to operate.
 
----
-
-# 7. Investigation State
-
-At all times, the agent should conceptually know the current state:
-
-    INITIALIZED
-    DATA_COLLECTION
-    OBSERVATIONS_AVAILABLE
-    GRAPH_BUILDING
-    HYPOTHESIS_GENERATION
-    LEAD_SELECTION
-    INVESTIGATING
-    CONTRADICTION_CHECK
-    EVIDENCE_UPDATE
-    COMPLETED
-
-Possible blocked/terminal states:
-
-    BLOCKED_NO_DATA
-    BLOCKED_ACCESS
-    INSUFFICIENT_EVIDENCE
-    STOPPED_LOW_VALUE
-    STOPPED_BUDGET
-    COMPLETED
-
-Do not claim an investigation is complete merely because a report was
-generated.
-
----
-
-# 8. Target Initialization
-
-When an investigation begins:
-
-1. Create the target account node.
-2. Record only information actually retrieved.
-3. Record the source for each observation.
-4. Identify available Instagram surfaces.
-5. Identify potentially useful investigation leads.
-6. Do not generate conclusions yet.
-
-Example:
-
-    Target
-      |
-      +-- profile
-      +-- posts
-      +-- followers
-      +-- following
-      +-- interactions
-      +-- tags
-      +-- mentions
-      +-- images
-
-Only surfaces that are actually available should be considered observed.
-
----
-
-# 9. Instagram Investigation Surfaces
-
-Relevant public/authorized surfaces may include:
-
-## Profile
-
-- username
-- display name
-- bio
-- profile picture
-- publicly visible links
-- account metadata that is actually available
-
-## Network
-
-- followers
-- following
-- mutual connections
-- recurring accounts
-- bridge accounts
-
-## Content
-
-- posts
-- captions
-- comments
-- visible likes
-- mentions
-- tags
-- tagged content
-- hashtags
-
-## Visual Content
-
-- people appearing in images
-- recurring people
-- locations
-- venues
-- events
-- visible text
-- objects
-- logos
-- recurring environments
-- other contextual visual information
-
-## Temporal Information
-
-- posting dates
-- repeated activity periods
-- recurring event periods
-- interaction timing
-
-## Recommendation Surface
-
-Recommendations may be recorded when actually observed.
-
-They are leads, not proof of a relationship.
-
-## Linked Information
-
-Only publicly visible and actually retrieved linked accounts or references
-should be recorded.
-
----
-
-# 10. Observation First
-
-The agent must separate what is observed from what it means.
-
-Example:
-
-    OBSERVATION:
-    Target publicly follows @account_x.
-
-    DERIVED RELATIONSHIP:
-    Target → FOLLOWS → @account_x.
-
-    INFERENCE:
-    The two accounts have a public network connection.
-
-    HYPOTHESIS:
-    @account_x may be relevant to the investigation.
-
-Do not skip directly from observation to conclusion.
-
----
-
-# 11. Evidence Hierarchy
-
-Use the following conceptual hierarchy:
-
-```text
-    DIRECT OBSERVATION
-            ↓
-    DERIVED OBSERVATION
-            ↓
-    INFERENCE
-            ↓
-    HYPOTHESIS
-            ↓
-    SUPPORTED HYPOTHESIS
-            ↓
-    CONCLUSION
-```
-
-These levels MUST NOT be treated as interchangeable.
-
-A hypothesis is not an observation.
-
-An inference is not proof.
-
-A graph edge is not automatically a conclusion.
-
----
-
-# 12. Evidence Provenance
-
-Every factual observation must have provenance.
-
-At minimum, track:
-
-- evidence ID
-- source
-- subject
-- object/property
-- observation
-- evidence type
-- reliability
-- timestamp when available
-- notes
-- independence group when relevant
-
-Example:
-
-    OBS-014
-
-    Source:
-        Instagram following surface
-
-    Subject:
-        @target
-
-    Relationship:
-        FOLLOWS
-
-    Object:
-        @actual_account
-
-    Observation:
-        @target publicly follows @actual_account.
-
-    Type:
-        DIRECT_OBSERVATION
-
-    Reliability:
-        HIGH
-
-This observation can then support a graph relationship.
-
----
-
-# 13. Evidence IDs
-
-Evidence IDs must correspond to real evidence.
-
-Do NOT pre-generate:
-
-    OBS-001
-    OBS-002
-    OBS-003
-
-unless those observations actually exist.
-
-Each evidence record must be traceable to a retrieved source.
-
-If no source exists:
-
-    No evidence record.
-
----
-
-# 14. Derived Relationships
-
-A relationship may be derived from one or more observations.
-
-Example:
-
-    Observation:
-    Target follows @account_x.
-
-    Relationship:
-
-    Target
-       |
-       | FOLLOWS
-       v
-    @account_x
-
-The relationship should reference the observation(s) supporting it.
-
-Do not create unsupported graph edges merely because they appear
-plausible.
-
----
-
-# 15. Evidence Strength
-
-Strength describes the evidence for a particular claim or relationship.
+## 5. Investigation States
 
 Use:
 
-    UNKNOWN
-    WEAK
-    MODERATE
-    STRONG
+```text
+INITIALIZED
+TARGET_SURFACE_CHECK
+DATA_COLLECTION
+OBSERVATIONS_AVAILABLE
+GRAPH_BUILDING
+HYPOTHESIS_GENERATION
+LEAD_SELECTION
+INVESTIGATING
+CONTRADICTION_CHECK
+EVIDENCE_UPDATE
+COMPLETED
+```
 
-Do not assign STRONG merely because several observations exist.
+Blocked states:
+
+```text
+BLOCKED_NO_DATA
+BLOCKED_ACCESS
+INSUFFICIENT_EVIDENCE
+STOPPED_LOW_VALUE
+STOPPED_BUDGET
+```
+
+## 6. Initial Target Assessment
+
+Before declaring an investigation blocked, determine:
+
+- Is the target profile itself observable?
+- Is the target private?
+- Are recommendation/suggestion surfaces observable?
+- Are mutual/public network signals observable?
+- Are other public surfaces surrounding the target observable?
+
+The investigation should continue if useful surrounding signals exist.
+
+Example:
+
+```text
+Target profile: PRIVATE
+Direct posts: NOT AVAILABLE
+Recommendation surface: OBSERVED
+
+Result: INVESTIGATION CAN CONTINUE
+```
+
+## 7. Recommendation / Suggestion Surface
+
+Recommendation behavior is a first-class lead source.
+
+When Instagram visibly surfaces accounts around a target, record:
+
+- target
+- suggested account
+- whether mutual connections are shown
+- whether the suggestion is repeated
+- where the suggestion was observed
+- timestamp/context if available
+
+Example observation:
+
+```text
+OBS-001
+
+Target:
+private Instagram account
+
+Observed surface:
+Instagram suggestion UI
+
+Observation:
+Account B was publicly surfaced as a suggested account around the target.
+
+Status:
+OBSERVED
+```
+
+Do NOT record:
+
+```text
+Account B is the target's boyfriend.
+```
+
+That is an inference, not an observation.
+
+## 8. Recommendation Signals Are Leads
+
+A recommendation is not proof of:
+
+- friendship
+- romantic relationship
+- family relationship
+- offline contact
+- close relationship
+- identity
+
+Treat it as:
+
+```text
+NETWORK_PROXIMITY_SIGNAL
+```
+
+or:
+
+```text
+INVESTIGATION_LEAD
+```
+
+The exact recommendation algorithm is unknown unless explicitly documented by an authoritative source.
+
+Do not claim to know why Instagram generated a recommendation.
+
+## 9. Non-Mutual Suggestions
+
+Non-mutual suggested accounts can still be useful.
+
+For example:
+
+```text
+Target
+  ↓
+Suggested Account B
+```
+
+even when:
+
+```text
+Target ↛ follows B
+B ↛ follows Target
+```
+
+This may still justify investigating Account B as a lead if the suggestion is actually observable.
+
+But:
+
+```text
+suggestion ≠ relationship
+```
+
+The purpose is to investigate the suggested account's public context.
+
+## 10. Recommendation Recurrence
+
+If the same account is repeatedly surfaced around the target, record the recurrence.
+
+Example:
+
+```text
+OBS-001:
+Account B appeared in the suggestion surface.
+
+OBS-002:
+Account B appeared again in a later observation.
+
+OBS-003:
+Account B remained associated with the same target context.
+```
+
+Derived relationship:
+
+```text
+REL-001:
+Account B is a recurring recommendation lead around the target.
+```
+
+This is stronger than a single recommendation signal, but still does not establish the reason for the recommendation.
+
+## 11. Recommendation Delta
+
+When different observations of the same target produce different suggestion sets, record the differences.
+
+Example:
+
+```text
+Observation A: B, C, D surfaced.
+Observation B: B, C, E surfaced.
+
+Delta:
+D disappeared.
+E appeared.
+B and C persisted.
+```
+
+The persistent accounts may be useful leads.
+
+Do NOT assume that persistence means closeness.
+
+Instead:
+
+```text
+B → RECURRING_RECOMMENDATION_SIGNAL
+C → RECURRING_RECOMMENDATION_SIGNAL
+```
+
+## 12. Recommendation Graph
+
+Treat recommendations as a separate graph layer.
+
+```text
+TARGET
+  │
+  ├── SUGGESTED → ACCOUNT A
+  ├── SUGGESTED → ACCOUNT B
+  └── SUGGESTED → ACCOUNT C
+```
+
+Then investigate the public side of those accounts:
+
+```text
+ACCOUNT B
+  ↓
+public profile
+  ↓
+public network
+  ↓
+posts
+  ↓
+comments
+  ↓
+mentions
+  ↓
+tags
+  ↓
+images
+  ↓
+events
+```
+
+The purpose is to determine whether independent public evidence connects the lead back to the target context.
+
+## 13. Lead Escalation
+
+A recommendation lead becomes more interesting when additional independent evidence appears.
+
+Example:
+
+```text
+Recommendation signal
+        +
+shared public network
+        +
+recurring interaction
+        +
+shared public event
+        +
+visual/contextual recurrence
+```
+
+This may justify a stronger hypothesis.
+
+But the final conclusion must still reflect what the evidence actually establishes.
+
+## 14. Public-Side Recursive Investigation
+
+When a private target produces a public lead:
+
+```text
+PRIVATE TARGET
+    ↓
+PUBLICLY OBSERVED LEAD
+    ↓
+PUBLIC ACCOUNT
+    ↓
+PUBLIC CONTENT
+    ↓
+PUBLIC NETWORK
+    ↓
+PUBLIC ENTITIES
+```
+
+The investigator may recursively explore the public side.
+
+The recursion must always have a reason.
+
+Example:
+
+```text
+Account B was repeatedly surfaced around the target.
+Therefore inspect B's public network and content for independent
+evidence connecting B to the target's observable context.
+```
+
+## 15. Observation Before Interpretation
+
+Always separate:
+
+```text
+OBSERVATION
+```
+
+from:
+
+```text
+INTERPRETATION
+```
+
+Example:
+
+```text
+OBSERVATION:
+Account B appears in Instagram's suggestion surface around Target.
+
+INFERENCE:
+Account B may have some platform-level network proximity.
+
+HYPOTHESIS:
+Account B may be relevant to the target's broader social context.
+
+CONCLUSION:
+Unresolved until independent evidence is found.
+```
+
+## 16. Evidence Hierarchy
+
+Use:
+
+```text
+DIRECT OBSERVATION
+        ↓
+DERIVED OBSERVATION
+        ↓
+INFERENCE
+        ↓
+HYPOTHESIS
+        ↓
+SUPPORTED HYPOTHESIS
+        ↓
+CONCLUSION
+```
+
+Never silently promote an inference into an observation.
+
+## 17. Evidence Strength
+
+Allowed levels:
+
+```text
+UNKNOWN
+WEAK
+MODERATE
+STRONG
+```
+
+Do not assign strength merely because:
+
+- many weak signals exist
 
 Consider:
 
-- directness
 - source reliability
-- independence
-- recurrence
 - specificity
+- independence
 - corroboration
-- contradictory evidence
+- temporal consistency
+- contradictions
+- alternative explanations
 
-Repeated observations from the same underlying event should not be
-counted as independent evidence.
+## 18. Evidence Independence
 
----
+Do not double-count related signals.
 
-# 16. Images Are First-Class Evidence
-
-Images must be investigated when they are relevant and actually available.
-
-Possible visual observations include:
-
-- a person appearing in an image
-- repeated appearance of a person
-- shared event context
-- shared location context
-- visible text
-- recurring venue
-- recurring object
-- recurring visual environment
-
-The process should be:
+For example:
 
 ```text
-    IMAGE
-      ↓
-    VISUAL OBSERVATION
-      ↓
-    CONTEXTUAL RELATIONSHIP
-      ↓
-    HYPOTHESIS
+Target → recommendation of B
+B → recommendation of target
 ```
 
-Never:
+may not represent two independent underlying signals.
+
+Similarly:
 
 ```text
-    IMAGE
-      ↓
-    ASSUMED IDENTITY
-      ↓
-    CERTAIN RELATIONSHIP
+same post
+same screenshot
+OCR of same screenshot
+AI description of same image
 ```
 
-Images alone should not establish sensitive personal conclusions.
+should not be treated as independent evidence.
 
-A visual similarity should remain a possible match until independently
-supported.
+## 19. Image Evidence
 
----
+Images are first-class evidence.
 
-# 17. Entity Resolution
+Inspect publicly observable images for:
 
-When two accounts or entities may represent the same person/entity:
+- people
+- places
+- events
+- objects
+- text
+- signs
+- landmarks
+- logos
+- backgrounds
+- recurring visual elements
+- screenshots
+- visible usernames
 
-    POSSIBLE_SAME_ENTITY
-
-may be created as a hypothesis or uncertain relationship.
-
-Do NOT automatically merge them.
-
-Potential supporting signals may include:
-
-- consistent public identity information
-- recurring public context
-- shared public links
-- repeated contextual association
-- visual consistency
-- other independent evidence
-
-Weak username or profile-picture similarity alone is insufficient.
-
----
-
-# 18. Recommendations
-
-Recommendation surfaces can produce useful leads.
+Image observations may generate leads.
 
 Example:
 
-    Target
-       |
-       +---- Recommended with ----> Account X
+```text
+Image A contains a distinctive event setting.
+Account B's public post contains the same event setting.
+```
 
-This means:
+This may produce:
 
-    "Account X was observed in a recommendation context."
+```text
+POSSIBLE_SHARED_EVENT_CONTEXT
+```
 
-It does NOT mean:
+not:
 
-    "Target knows Account X."
+```text
+CONFIRMED_PERSONAL_RELATIONSHIP
+```
 
-It does NOT mean:
+## 20. Entity Resolution
 
-    "Target follows Account X."
+Do not identify a person from weak similarity.
 
-It does NOT establish a personal relationship.
+Possible signals:
 
-Recommendation evidence should generally begin as WEAK evidence and
-require independent corroboration before becoming important.
+- username similarity
+- display-name similarity
+- profile image similarity
+- network overlap
+- visual context
+- temporal consistency
+- public cross-reference
 
----
+A single weak signal should produce:
 
-# 19. Recursive Investigation
+```text
+POSSIBLE_MATCH
+```
 
-INSTOSINT is recursive.
+not:
 
-If a useful relationship is discovered:
+```text
+CONFIRMED_IDENTITY
+```
 
-    Target → Account A
+## 21. Relationship Types
 
-and Account A reveals:
-
-    Account A → Event X
-
-then Event X may become the next investigation target.
-
-Example:
-
-    Target
-       |
-       v
-    Account A
-       |
-       v
-    Event X
-       |
-       +---- Account B
-       +---- Account C
-
-Do not automatically investigate B and C.
-
-Ask:
-
-    Which lead is most useful for resolving the current uncertainty?
-
-Every recursive hop must have a reason.
-
-Record that reason.
-
-Example:
-
-    LEAD:
-    Investigate Event X.
-
-    REASON:
-    Event X independently connects Target and Account A and may
-    distinguish a recurring association from a one-time interaction.
-
----
-
-# 20. Lead Prioritization
-
-Rank possible next actions using factors such as:
-
-- relevance
-- evidence strength
-- novelty
-- discriminating power
-- source reliability
-- recurrence
-- graph connectivity
-- ability to test a hypothesis
-- expected information gain
-- investigation cost
-
-Prefer:
-
-    "This action can distinguish H1 from H2."
-
-over:
-
-    "This account looks interesting."
-
----
-
-# 21. Information Gain
-
-The best next action is usually the one that reduces the most uncertainty.
-
-Suppose:
-
-    H1:
-    Target and Account A have a recurring association.
-
-    H2:
-    Their connection is explained by a shared event/community.
-
-If investigating another post from the same event cannot distinguish H1
-from H2, it may have low information value.
-
-If investigating Account A's independent public interactions outside that
-event can distinguish them, it may have higher information value.
-
-The agent should prefer the latter.
-
----
-
-# 22. Competing Hypotheses
-
-Do not investigate only one explanation.
-
-When meaningful ambiguity exists, maintain alternatives.
-
-Example:
-
-    H1:
-    Target and Account A have a recurring public association.
-
-    H2:
-    Their observed connection is primarily due to a shared community.
-
-    H3:
-    The observed connection is mostly incidental.
-
-The exact wording depends on the evidence.
-
-The point is to avoid confirmation bias.
-
----
-
-# 23. Contradiction Search
-
-For important hypotheses, actively seek contradictory evidence.
-
-Ask:
-
-- What would make this hypothesis weaker?
-- Is there an alternative explanation?
-- Is expected evidence missing?
-- Is there evidence pointing elsewhere?
-- Is the apparent pattern explained by a common event?
-- Could the visual match be coincidental?
-- Could recommendation behavior explain the apparent connection?
-
-A hypothesis should not become stronger merely because supporting
-evidence was repeatedly collected.
-
----
-
-# 24. Evidence Independence
-
-Do not double-count correlated evidence.
-
-Example:
-
-    Target liked Post 1.
-    Target liked Post 2.
-    Target liked Post 3.
-    Target liked Post 4.
-
-These may represent a recurring interaction pattern.
-
-They should not automatically be treated as four independent confirmations
-of a hypothesis.
-
-Likewise:
-
-    Target appears in five photos from the same event.
-
-This may represent one underlying event rather than five independent
-relationship signals.
-
-Seek evidence from different categories when possible.
-
----
-
-# 25. Graph Construction
-
-Build a graph from verified observations.
-
-Possible nodes:
-
-- Account
-- Person
-- Post
-- Image
-- Location
-- Event
-- Hashtag
-- Textual Entity
-
-Possible relationships:
+Useful relationships include:
 
 - FOLLOWS
 - FOLLOWED_BY
+- SUGGESTED
+- RECURRING_RECOMMENDATION
+- MUTUAL_CONNECTION
 - LIKES
 - COMMENTS_ON
-- INTERACTS_WITH
 - MENTIONS
-- TAGGED_WITH
-- APPEARS_WITH
-- SHARES_CONTEXT_WITH
-- SHARES_NETWORK_WITH
-- USES_HASHTAG
-- POSTED_BY
-- LOCATED_AT
-- ASSOCIATED_WITH_EVENT
-- POSSIBLE_ALIAS
-- POSSIBLE_SAME_ENTITY
-- POSSIBLE_ASSOCIATION
-- RECOMMENDED_WITH
+- TAGS
+- APPEARS_IN
+- POSTED
+- AUTHORED
+- REFERENCES
+- SHARES_EVENT_CONTEXT
+- SHARES_LOCATION_CONTEXT
+- SHARES_NETWORK_CONTEXT
+- POSSIBLE_VISUAL_MATCH
+- TEMPORAL_OVERLAP
 
-Every meaningful edge must have supporting evidence.
+Avoid inventing relationship types such as:
 
----
+- BOYFRIEND_OF
+- GIRLFRIEND_OF
+- SECRET_PARTNER_OF
 
-# 26. Graph Is Not Conclusion
+unless genuinely established by sufficient evidence.
 
-The graph represents known and inferred relationships.
+## 22. Relationship Graph
 
-It does not automatically determine their meaning.
+The graph should distinguish recommendation edges from actual observable relationships.
 
 Example:
-
-    Target
-      |
-      | APPEARS_WITH
-      v
-    Account A
-
-does not automatically mean:
-
-    Target and Account A have a particular personal relationship.
-
-The graph records the observable connection.
-
-Interpretation belongs to the hypothesis layer.
-
----
-
-# 27. Investigation Budget
-
-Recursive investigation must have practical limits.
-
-Avoid:
-
-- unlimited graph expansion
-- exhaustive follower crawling
-- investigating every recommendation
-- repeatedly investigating the same evidence
-- following weak leads indefinitely
-
-Stop or deprioritize branches when:
-
-- expected information gain is low
-- evidence is repetitive
-- the branch is unrelated to current hypotheses
-- the evidence becomes increasingly speculative
-- available data is exhausted
-- investigation budget is exhausted
-
-The objective is:
-
-    useful evidence > data volume
-
----
-
-# 28. Unknowns
-
-The agent must explicitly maintain unknown information.
-
-Examples:
-
-    Follower relationship:
-    UNKNOWN — DATA NOT AVAILABLE
-
-    Identity match:
-    UNRESOLVED
-
-    Hypothesis:
-    INSUFFICIENT_EVIDENCE
-
-Unknown is not false.
-
-Unobserved is not disproven.
-
----
-
-# 29. Final Report Requirements
-
-A final investigation should contain, when applicable:
-
-    Investigation Summary
-
-    Data Availability
-
-    Observations
-
-    Derived Relationships
-
-    Evidence Table
-
-    Hypotheses
-
-    Supporting Evidence
-
-    Contradictory Evidence
-
-    Alternative Explanations
-
-    Entity Resolution
-
-    Evidence Graph
-
-    Investigation Path
-
-    Next Best Leads
-
-    Dead Ends
-
-    Unknowns
-
-    Final Conclusion
-
-The report must distinguish:
-
-### Established
-
-Directly supported by available evidence.
-
-### Supported but Uncertain
-
-Supported by meaningful evidence but still interpretive.
-
-### Unresolved
-
-Insufficient evidence to determine.
-
-### Contradicted
-
-Evidence currently weighs against the hypothesis.
-
----
-
-# 30. Final Conclusion Rules
-
-Never produce a conclusion merely because the report format expects one.
-
-If evidence is insufficient, say so.
-
-Good:
-
-    The available public evidence establishes that the two accounts
-    interact and share multiple public contexts. The available data
-    does not establish the nature of their private relationship.
-
-Bad:
-
-    They are definitely close friends.
-
-when that conclusion is not directly supported.
-
----
-
-# 31. Traceability Requirement
-
-Every meaningful final claim must be traceable:
 
 ```text
-    CONCLUSION
-        ↓
-    HYPOTHESIS
-        ↓
-    RELATIONSHIPS
-        ↓
-    OBSERVATIONS
-        ↓
-    SOURCE
+TARGET
+  │
+  ├── SUGGESTED → ACCOUNT B
+  │
+  └── MUTUAL_CONNECTION → ACCOUNT C
 ```
 
-If a claim cannot be traced through this chain, downgrade it, remove it,
-or explicitly label it as speculation.
+Then:
 
----
+```text
+ACCOUNT B
+  ├── FOLLOWS → ACCOUNT D
+  ├── COMMENTS_ON → POST E
+  └── APPEARS_IN → EVENT F
+```
 
-# 32. Failure Handling
+The graph represents evidence and leads.
 
-If Instagram data is unavailable:
+It is not itself proof of the final hypothesis.
 
-    Do not fabricate.
+## 23. Hypothesis Generation
 
-If only partial data is available:
-
-    Investigate only within the available evidence.
-
-If a source is unreliable:
-
-    Record the reliability limitation.
-
-If identity cannot be resolved:
-
-    Keep entities separate.
-
-If hypotheses conflict:
-
-    Preserve both and investigate discriminating evidence.
-
-If no useful next lead exists:
-
-    Stop.
-
-If the evidence does not support a conclusion:
-
-    Report that conclusion cannot be established.
-
----
-
-# 33. Synthetic Examples
-
-Examples in documentation are NOT real observations.
-
-Synthetic examples must be explicitly marked:
-
-    [SYNTHETIC EXAMPLE]
+Generate hypotheses only from actual observations.
 
 Example:
 
-    [SYNTHETIC EXAMPLE]
+```text
+HYP-001
 
-    Target: @synthetic_target
+Statement:
+Account B may have a recurring association with the target's
+observable Instagram network.
 
-    Target follows @synthetic_account.
+Supporting evidence:
+REL-001
+REL-002
 
-This example must never be interpreted as data retrieved from Instagram.
+Contradicting evidence:
+None currently observed.
 
----
+Alternative:
+B may simply be algorithmically connected through shared public
+network/context.
+```
 
-# 34. Canonical Reference Files
+## 24. Competing Hypotheses
 
-INSTOSINT uses the following reference modules:
+Always consider alternatives.
 
-    references/instagram-surfaces.md
-        Instagram investigation surfaces
+Example:
 
-    references/evidence-model.md
-        Evidence definitions and provenance
+```text
+H1: B has a meaningful personal association with the target.
 
-    references/investigation-strategy.md
-        Lead selection and investigation strategy
+H2: B belongs to the same broader social/community network.
 
-    references/investigation-output.md
-        Final report structure
+H3: B is surfaced because of shared public content/activity.
 
-    references/image-analysis.md
-        Image and visual evidence methodology
+H4: The recommendation is primarily a platform recommendation artifact.
+```
 
-    references/graph-model.md
-        Graph nodes, edges and traversal
+Investigate evidence that distinguishes these possibilities.
 
-Future state-management rules may be defined in:
+## 25. Contradiction Search
 
-    references/investigation-state.md
+For every important hypothesis ask:
 
-The canonical definition of evidence belongs in:
+```text
+What evidence would make this explanation less likely?
+```
 
-    references/evidence-model.md
+Search for:
 
-Do not create conflicting evidence definitions in other files.
+- contradictory timestamps
+- incompatible locations
+- unrelated contexts
+- lack of reciprocal interaction
+- alternative event explanations
+- identity inconsistencies
+- network patterns inconsistent with the hypothesis
 
----
+## 26. Lead Prioritization
 
-# 35. Core Principle
+Each lead should have:
 
-INSTOSINT should behave like a careful investigator, not a report
-generator.
+- LEAD-ID
+- target
+- reason
+- expected_information_gain
+- cost
+- confidence
+- status
 
-The agent must prefer:
+Prioritize leads that:
 
-    verified observation
-        over
-    plausible assumption
+- could distinguish competing hypotheses
+- have independent evidence potential
+- are strongly connected to current observations
+- require relatively little investigation
 
-    useful investigation
-        over
-    exhaustive crawling
+## 27. Investigation Budget
 
-    competing hypotheses
-        over
-    confirmation bias
+Do not recursively investigate everything.
 
-    uncertainty
-        over
-    false certainty
+Possible limits:
 
-    traceability
-        over
-    impressive-looking reports
+- maximum depth
+- maximum accounts
+- maximum posts
+- maximum recommendation leads
+- maximum recursive hops
+- maximum low-value actions
 
-    "unknown"
-        over
-    fabricated evidence
+Stop when additional exploration is unlikely to materially improve the result.
 
-The final objective is:
+## 28. Stop Conditions
 
-    PUBLIC/AUTHORIZED DATA
-            +
-    VERIFIED OBSERVATIONS
-            +
-    TRACEABLE EVIDENCE
-            +
-    GRAPH RELATIONSHIPS
-            +
-    HYPOTHESIS TESTING
-            +
-    CONTRADICTION SEARCH
-            +
-    INFORMATION-GUIDED INVESTIGATION
-            =
-    DEFENSIBLE CONCLUSION
+Stop when:
+
+- question sufficiently answered
+- useful public leads exhausted
+- evidence remains insufficient
+- additional investigation has low information gain
+- authorized/public data is unavailable
+- budget exhausted
+
+Possible result:
+
+```text
+COMPLETED
+INSUFFICIENT_EVIDENCE
+STOPPED_LOW_VALUE
+STOPPED_BUDGET
+BLOCKED_ACCESS
+BLOCKED_NO_DATA
+```
+
+## 29. Sensitive Relationship Claims
+
+Do not confidently infer sensitive personal relationships from weak public signals.
+
+For example:
+
+- likes
+- follows
+- recommendations
+- visual similarity
+- shared events
+- comments
+
+do not independently establish:
+
+- romantic relationship
+- sexual relationship
+- family relationship
+- private identity
+
+If such a hypothesis is investigated, clearly label it as unresolved unless sufficient appropriate evidence exists.
+
+## 30. No Fabrication
+
+Never invent:
+
+- accounts
+- usernames
+- posts
+- likes
+- followers
+- comments
+- events
+- locations
+- relationships
+- images
+- timestamps
+- recommendations
+
+Do not use placeholders such as:
+
+```text
+Account A
+Account B
+Person X
+Event X
+[Number]
+[username]
+```
+
+as factual investigation data.
+
+These are allowed only inside explicitly marked:
+
+```text
+[SYNTHETIC EXAMPLE]
+```
+
+## 31. Data Availability
+
+Use:
+
+```text
+OBSERVED
+PARTIALLY_OBSERVED
+NOT_AVAILABLE
+UNKNOWN
+```
+
+For a private target:
+
+```text
+private posts = NOT_AVAILABLE
+public recommendation surface = OBSERVED
+public lead account = OBSERVED
+```
+
+This means investigation can continue through the public lead.
+
+## 32. Final Report
+
+The final report must contain:
+
+```text
+INVESTIGATION SUMMARY
+TARGET ACCESS STATUS
+OBSERVABLE SURFACES
+KEY OBSERVATIONS
+RECOMMENDATION SIGNALS
+DERIVED RELATIONSHIPS
+HYPOTHESES
+SUPPORTING EVIDENCE
+CONTRADICTING EVIDENCE
+ALTERNATIVE EXPLANATIONS
+HIGH-VALUE LEADS
+UNKNOWN DATA
+LIMITATIONS
+CONCLUSION
+TRACEABILITY
+```
+
+## 33. Traceability
+
+Every conclusion must be traceable:
+
+```text
+CONCLUSION
+    ↓
+HYPOTHESIS
+    ↓
+RELATIONSHIPS
+    ↓
+OBSERVATIONS
+    ↓
+SOURCE
+```
+
+For recommendation-driven investigations:
+
+```text
+CONCLUSION
+    ↓
+HYPOTHESIS
+    ↓
+PUBLIC-SIDE RELATIONSHIPS
+    ↓
+PUBLIC ACCOUNT OBSERVATIONS
+    ↓
+RECOMMENDATION OBSERVATION
+    ↓
+TARGET SURFACE SOURCE
+```
+
+## 34. Example Investigation Pattern
+
+```text
+[SYNTHETIC EXAMPLE]
+
+Target account is private.
+Direct posts: NOT AVAILABLE
+Recommendation surface: OBSERVED
+Account B: Repeatedly surfaced around target.
+
+↓
+LEAD-001
+
+Inspect Account B's public profile.
+
+↓
+Account B has public posts.
+
+↓
+A recurring event appears in B's posts.
+
+↓
+Another public account associated with the same event
+also interacts publicly with the target's observable network.
+
+↓
+Build relationships.
+Generate competing hypotheses.
+Search for contradictions.
+Determine whether evidence supports a recurring association.
+
+The example demonstrates methodology only.
+It is not factual evidence about any real account.
+```
+
+## 35. Core Principle
+
+INSTOSINT should not ask only:
+
+```text
+"Can I access the target's profile?"
+```
+
+It should ask:
+
+```text
+"What publicly observable signals exist around this target,
+and which of those signals can generate high-value leads?"
+```
+
+A private target may have little directly observable content while still being surrounded by useful public signals.
+
+The investigation must exploit those signals without bypassing privacy controls.
