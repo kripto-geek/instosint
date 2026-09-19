@@ -105,6 +105,11 @@ Inspect available public surfaces:
 - locations
 - linked resources
 - recommendations
+- profile-page suggestion block (private accounts)
+
+When direct HTTP access is blocked, use the optional browser-access layer
+(`references/browser-access.md`) with an authorized test-account session
+to observe JS-rendered public surfaces.
 
 Do not exhaustively crawl every available object automatically.
 

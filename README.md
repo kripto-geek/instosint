@@ -116,6 +116,7 @@ instosint/
 - `image-analysis.md` — image and visual evidence methodology
 - `graph-model.md` — graph nodes, edges, and traversal
 - `suggestion-surface-analysis.md` — advanced suggestion-surface methodology including quantified features, fingerprinting, community detection, and weighted lead scoring
+- `browser-access.md` — optional browser-based data-access layer for observing JS-rendered Instagram surfaces with authorized test-account sessions
 
 ---
 
@@ -123,18 +124,21 @@ instosint/
 
 ```text
 Instagram Data Access Layer
-  → INSTOSINT
+  ├── Direct HTTP (raw fetches, web search)
+  └── Browser Automation (optional, authorized test-account session)
+        ↓
+  INSTOSINT
     → Evidence Graph
       → Investigation Report
 ```
 
-INSTOSINT is the reasoning layer. It operates only on publicly observable or otherwise authorized data.
+INSTOSINT is the reasoning layer. It operates only on publicly observable or otherwise authorized data. Browser automation is an optional data-access layer for observing JS-rendered public surfaces; it is not an access-control bypass.
 
 ---
 
 ## Status
 
-INSTOSINT contains the investigation methodology and supporting reference documentation. The next engineering step is connecting the reasoning layer to a reliable, authorized Instagram data source so every observation is backed by actual retrieved data.
+INSTOSINT contains the investigation methodology, supporting reference documentation, and an optional browser-access layer. The next engineering step is connecting the reasoning layer to a reliable, authorized Instagram data source so every observation is backed by actual retrieved data.
 
 ---
 

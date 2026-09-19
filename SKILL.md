@@ -100,6 +100,56 @@ INSTOSINT must NOT:
 
 If the target is private, investigate only what is actually observable.
 
+## 3a. Browser-Based Access Layer (Optional)
+
+Instagram's frontend is JS-heavy and may block direct HTTP requests.
+
+INSTOSINT may use browser automation as an **optional data-access layer**
+when direct HTTP access is unavailable or insufficient.
+
+## 3a.1 Authorization Requirements
+
+Browser automation requires:
+- an authorized test Instagram account created by the user
+- session cookies or credentials provided by the user
+- explicit user consent to use browser automation
+
+The test account must:
+- be created by the user for investigation purposes
+- contain no personal data
+- not follow the target or related accounts before investigation
+- not interact with the target's content during investigation
+
+## 3a.2 Permitted Uses
+
+Browser automation may be used to observe:
+- public profile pages
+- public suggestion/similar-account surfaces
+- public posts
+- public comments
+- public mentions/tags
+- public visual content for screenshots/evidence
+
+## 3a.3 Prohibited Uses
+
+Browser automation must NOT be used to:
+- access private content the user's account is not authorized to see
+- follow, like, comment, or interact with any account
+- bypass login challenges or authentication
+- impersonate other users
+- access DMs or private stories
+- perform any action that would not be taken manually
+
+## 3a.4 Guardrails
+
+- session cookies are sensitive credentials; store them securely
+- never commit session files to version control
+- respect Instagram rate limits: 2-5 seconds between page loads, 1 hour between profile observations
+- stop immediately if Instagram blocks or challenges the session
+- record each observation with timestamp and access method
+
+See `references/browser-access.md` for the full browser-access protocol.
+
 ## 4. Investigation Model
 
 The investigation follows:

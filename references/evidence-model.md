@@ -83,6 +83,7 @@ Examples:
 - public recommendation surface
 - publicly available image
 - other authorized Instagram data source
+- browser-automated session (authorized test account)
 
 A source must represent something the agent actually accessed.
 
