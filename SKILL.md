@@ -1,6 +1,6 @@
 ---
 name: instosint
-description: Instagram-focused public-data investigation skill. Investigates publicly observable Instagram accounts, including private-account surrounding signals such as recommendations, mutuals, public network context, interactions, recurring entities, and visual context. Builds a traceable evidence graph, recursively investigates high-value leads, and separates observations from hypotheses and conclusions.
+description: Instagram-focused public-data investigation skill. Investigates publicly observable Instagram accounts, including private-account surrounding signals such as recommendations, mutuals, public network context, interactions, recurring entities, and visual context. Builds a traceable evidence graph, recursively investigates high-value leads, and separates observations from hypotheses and conclusions. Includes advanced suggestion-surface analysis with quantified features, fingerprinting, community detection, and weighted lead scoring.
 ---
 
 # INSTOSINT
@@ -361,6 +361,349 @@ events
 ```
 
 The purpose is to determine whether independent public evidence connects the lead back to the target context.
+
+## 12b. Suggestion Evidence Requirements
+
+Every suggestion observation must record:
+
+- target account
+- suggested account
+- exact surface where observed
+- position in suggestion list (if available)
+- mutual-connection count (if visible)
+- context label text (if present)
+- timestamp
+- reliability
+
+Do not record a suggestion without identifying the surface and the exact suggested account.
+
+## 12c. Suggestion Graph Layer
+
+Build suggestion relationships as a separate graph layer:
+
+```text
+LAYER 1: Direct relationships (FOLLOWS, LIKES, COMMENTS, MENTIONS)
+LAYER 2: Suggestion relationships (SUGGESTED, RECURRING_SUGGESTION, BIDIRECTIONAL_SUGGESTION)
+```
+
+Suggestion edges carry features:
+- recurrence count
+- persistence ratio
+- mutual count
+- surfaces observed
+- bidirectional flag
+
+When a SUGGESTED edge coincides with a direct relationship edge, the combined signal is stronger than either alone.
+
+## 12d. Suggestion Lead Scoring
+
+Use the qualitative scoring model from `references/suggestion-surface-analysis.md` to prioritize leads.
+
+Score components:
+- recurrence (1-3 points)
+- mutual count (1-3 points)
+- persistence ratio (1-3 points)
+- multi-surface presence (1-3 points)
+- bidirectional (0-1 points)
+- independent corroboration (0-4 points)
+
+Score ranges:
+- 0-3: WEAK lead
+- 4-6: MODERATE lead
+- 7-9: STRONG lead
+- 10+: HIGH-VALUE lead
+
+Score is a prioritization tool, not a proof of relationship.
+
+### Scoring Calibration
+
+- A score of 6 is the minimum threshold for substantive investigation. Leads with score 4-6 may be investigated only if no higher-score leads exist or if budget allows.
+- When two leads have the same score, prefer the lead with higher corroboration count.
+- When scores and corroboration are equal, prefer the lead with higher mutual-connection count.
+- A lead with score 3 that has unique features (e.g., appears in a public post with the target) may be worth a single corroboration check even below threshold.
+- A HIGH-VALUE lead with zero corroboration is still a stronger signal than a MODERATE lead with one corroboration — but the MODERATE lead may be faster to validate.
+
+See Step 6 of the Suggestion Investigation Playbook (Section 12f) for community detection methodology.
+
+## 12e. Community Detection via Suggestions
+
+When investigating multiple private targets:
+- compare suggestion sets for overlap
+- identify accounts that appear across many targets' suggestion sets
+- identify strongly connected suggestion clusters
+- generate hypotheses about shared network membership
+
+Community detection from suggestions produces:
+```text
+COMMUNITY_CANDIDATE
+```
+
+not:
+```text
+CONFIRMED_GROUP_MEMBERSHIP
+```
+
+## 12f. Suggestion Investigation Playbook
+
+Use this step-by-step procedure when investigating a target with suggestion surfaces available.
+
+### Step 1 — Initial Suggestion Sweep
+
+1. Navigate to the target's profile page (without following, if private).
+2. Observe and record the full suggestion block. For each suggested account, capture:
+   - username
+   - position in list
+   - mutual-connection count (if shown)
+   - context label (if shown)
+3. Use the canonical record format:
+
+```text
+OBS-XXX
+
+Source:
+    Profile-page suggestion block for @target
+
+Suggested account:
+    @suggested_account
+
+Position in list:
+    N
+
+Mutual-connection count:
+    X (or NOT_VISIBLE)
+
+Context label:
+    exact text or NOT_VISIBLE
+
+Surface:
+    profile_page_suggestion_block
+
+Timestamp:
+    observed timestamp
+
+Reliability:
+    MODERATE
+```
+
+4. Record the full suggestion set.
+5. Do not investigate yet — just record the full set.
+
+### Step 2 — Set Analysis
+
+1. Identify persistent accounts (appearing in multiple observations).
+2. Identify transient accounts (appearing once and not again).
+3. Calculate overlap if you have multiple observation sessions.
+4. Flag the top 3-5 accounts by:
+   - recurrence count
+   - mutual count
+   - persistence ratio
+
+### Step 3 — Lead Scoring
+
+1. For each flagged account, compute the lead score using the model in Section 12d.
+2. Prioritize leads with score ≥ 7 (STRONG or HIGH-VALUE).
+3. Lower-score leads may still be worth investigating if they have unique features.
+
+### Step 4 — Deep Dive on Top Leads
+
+For each top lead:
+1. Inspect the suggested account's public profile.
+2. Record public follows, posts, comments, mentions, tags.
+3. Look for independent corroboration:
+   - does the suggested account publicly follow or mention the target?
+   - do they appear in the same public event/place?
+   - do they share recurring visual context?
+4. Check for bidirectional suggestion if feasible.
+5. Update the lead score with corroboration points.
+6. Decide: escalate to hypothesis, continue investigation, or stop.
+
+### Step 5 — Multi-Surface Triangulation
+
+If the same target can be observed across multiple surfaces:
+1. Check "Accounts you may know" for the same target.
+2. Check search suggestions for the target.
+3. Compare suggestion sets across surfaces.
+4. Accounts appearing on multiple surfaces get the multi-surface bonus.
+
+### Step 6 — Community Detection (Multi-Target)
+
+If investigating multiple private targets:
+1. Collect suggestion sets for each target.
+2. Compute pairwise overlap between sets.
+3. Identify accounts appearing across 2+ targets' sets.
+4. Build a suggestion cluster graph.
+5. Generate hypotheses about shared network membership.
+
+### Step 7 — Stop Conditions
+
+Stop suggestion-driven investigation when:
+- all top leads have been investigated
+- corroboration is exhausted
+- additional observations have low expected information gain
+- budget is exhausted
+
+Final state may be:
+```text
+COMPLETED (sufficient evidence)
+INSUFFICIENT_EVIDENCE (leads exhausted without strong corroboration)
+STOPPED_LOW_VALUE (remaining leads are weak)
+```
+
+## 12g. Edge Cases
+
+### No suggestions visible
+
+If the profile page shows no suggestion block:
+1. Record: `SUGGESTION_SURFACE = NOT_AVAILABLE`
+2. Do not infer that the target has no network connections.
+3. Proceed to other observable surfaces: public posts, comments, tagged content, search results.
+4. If no public surfaces exist, mark as `INSUFFICIENT_EVIDENCE`.
+
+### Rate-limited or altered results
+
+Instagram may alter suggestions based on request patterns.
+
+If results appear inconsistent:
+1. Record each observation separately with timestamp.
+2. Do not merge inconsistent observations.
+3. Note variability in the report.
+4. Increase observation intervals.
+
+### Suggestion block changes on reload
+
+Instagram may show different suggestion sets on successive page reloads within the same session.
+
+If results change between reloads:
+1. Record each observation separately with timestamp.
+2. Assign each observation to the same session/independence group.
+3. Do not merge observations into a single "true" set.
+4. Use delta analysis to identify persistent vs. transient accounts.
+5. Persistent accounts are stronger leads; transient accounts may be algorithmic noise.
+
+### Empty suggestion set
+
+If the block is present but empty:
+1. Record: `SUGGESTION_SET = EMPTY`
+2. This may indicate: new account, low activity, or algorithmic suppression.
+3. Proceed to other surfaces.
+
+### Single suggestion
+
+If only one account is suggested:
+1. Record the single suggestion.
+2. A single suggestion is a WEAK lead without corroboration.
+3. Do not treat it as more reliable than a multi-account set.
+
+### Fallback decision tree
+
+When suggestion-driven investigation stalls, use this decision tree:
+
+```text
+Are there any suggestion leads with score ≥ 7?
+├── YES → Investigate them first.
+│   └── After investigation: is corroboration sufficient for conclusion?
+│       ├── YES → COMPLETED
+│       └── NO → are there remaining MODERATE leads (score 4-6)?
+│           ├── YES → investigate them if budget allows
+│           └── NO → pivot to other public surfaces
+└── NO → pivot immediately to other public surfaces:
+    ├── public posts
+    ├── comments
+    ├── tagged content
+    ├── public mentions
+    └── search results
+```
+
+After pivoting:
+- If other surfaces yield useful evidence, return to suggestion leads with updated context.
+- If other surfaces are also unavailable, mark as `INSUFFICIENT_EVIDENCE`.
+- Do not continue investigating suggestion leads that have already been exhausted.
+
+## 12h. "Accounts You May Know" Surface
+
+The "Accounts you may know" surface is distinct from the profile-page suggestion block.
+
+### Observable Features
+
+Record the same features as profile-page suggestions:
+- suggested account username
+- mutual-connection count
+- connection reason label
+- position/order in the list
+
+### Difference from Profile-Page Suggestions
+
+Profile-page suggestions are directly attached to the target and may be more target-specific.
+
+"Accounts you may know" is a broader algorithmic surface that may include the target's context but is not exclusively about the target.
+
+Weight profile-page suggestions slightly higher in lead scoring.
+
+### Cross-Surface Corroboration
+
+If the same account appears in both surfaces:
+- Record both observations separately.
+- This counts as multi-surface presence.
+- Increase the lead's multi-surface score.
+
+## 12i. End-to-End Walkthrough
+
+```text
+[SYNTHETIC EXAMPLE]
+
+Target: @private_target
+Surface: profile-page suggestion block
+Observation count: 4 (spaced 2 hours apart)
+
+OBS-001 (Session A):
+Suggestion set: [@acc_a (mutual: 12), @acc_b (mutual: 3), @acc_c (mutual: 1)]
+
+OBS-002 (Session B):
+Suggestion set: [@acc_a (mutual: 15), @acc_b (mutual: 3), @acc_d]
+
+OBS-003 (Session C):
+Suggestion set: [@acc_a (mutual: 12), @acc_b (mutual: 4), @acc_c (mutual: 1)]
+
+OBS-004 (Session D):
+Suggestion set: [@acc_a (mutual: 18), @acc_b (mutual: 5), @acc_c (mutual: 2)]
+
+Derived:
+- @acc_a: persistent (4/4), high mutual count, increasing trend
+- @acc_b: persistent (4/4), low-moderate mutual, stable
+- @acc_c: recurring (3/4), low mutual
+- @acc_d: transient (1/4)
+
+Lead scores:
+- @acc_a: 10 (HIGH-VALUE) — high recurrence, high mutual, full persistence
+- @acc_b: 9 (STRONG) — high recurrence, moderate mutual, full persistence
+
+Deep dive on @acc_a:
+- Public profile found.
+- @acc_a's public posts contain recurring event context.
+- Another public account in the same event context interacts with target's network.
+
+Corroboration:
+- + shared event context (independent surface)
+- + public mention of target's network (independent surface)
+
+Updated @acc_a score: 13 (HIGH-VALUE)
+
+Community detection:
+- @acc_a and @acc_b are co-suggested across all sessions.
+- They form a SUGGESTION_CLUSTER.
+- Target's suggestion set is 2/3 dominated by this cluster.
+
+Hypothesis:
+- Target may have a strong network association with the @acc_a/@acc_b cluster.
+- The cluster may represent a shared community, workplace, or social circle.
+
+Conclusion:
+- Publicly observable suggestion evidence supports a recurring network
+  association between the target and the @acc_a/@acc_b cluster.
+- The nature of the association is unresolved without further evidence.
+```
+
+This is a synthetic example. Real investigations must use actual observed data.
 
 ## 13. Lead Escalation
 

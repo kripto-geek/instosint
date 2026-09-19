@@ -276,6 +276,62 @@ The public following surface could not be retrieved.
 
 This is not evidence that the following relationship does not exist.
 
+## SUGGESTION_OBSERVATION
+
+A factual observation from a suggestion surface.
+
+Example:
+
+```text
+@suggested_account appeared in position 2 of the profile-page
+suggestion block for @target, with mutual count = 12.
+```
+
+## RECURRING_SUGGESTION_SIGNAL
+
+A derived observation indicating that the same account appeared in multiple suggestion observations.
+
+Example:
+
+```text
+@suggested_account appeared in 3 of 4 observations of @target's
+suggestion block.
+```
+
+## BIDIRECTIONAL_SUGGESTION_SIGNAL
+
+A derived observation indicating that @target appears in @suggested_account's suggestion context and vice versa (when observable).
+
+Example:
+
+```text
+@target appeared in @suggested_account's profile-page suggestion block,
+and @suggested_account appeared in @target's profile-page suggestion block.
+```
+
+## SHARED_SUGGESTION_FINGERPRINT
+
+A derived observation indicating overlap between suggestion sets of two or more targets.
+
+Example:
+
+```text
+Target A and Target B share 2 accounts in their suggestion sets
+out of 8 total unique accounts.
+```
+
+## COMMUNITY_CANDIDATE
+
+A derived observation indicating that an account appears across many targets' suggestion sets, suggesting possible shared network membership.
+
+Example:
+
+```text
+@account_x appeared in suggestion sets for 4 of 5 investigated targets.
+```
+
+All suggestion evidence types carry MODERATE reliability at most until independent public corroboration is found.
+
 ---
 
 # 8. Evidence Status

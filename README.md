@@ -10,7 +10,7 @@ The goal is **reasoning over relationships**, not indiscriminate data collection
 
 ## What It Does
 
-Given a target account, the agent examines public Instagram surfaces, identifies accounts, posts, people, places, events, and interactions, connects them, generates hypotheses, and decides what to investigate next.
+Given a target account, the agent examines public Instagram surfaces, identifies accounts, posts, people, places, events, and interactions — including the profile-page suggestion block shown for private accounts — connects them, generates hypotheses, and decides what to investigate next.
 
 ```text
 Target Account
@@ -36,11 +36,22 @@ OBSERVE → RECORD → CONNECT → FORM HYPOTHESES → INVESTIGATE
 
 Instagram is treated as a dynamic relationship graph, not isolated profiles.
 
-Example:
+INSTOSINT operates on publicly observable surrounding signals — including the profile-page suggestion block shown for private accounts — and uses suggestion-set fingerprinting, multi-surface triangulation, and community detection to map network relationships without accessing private content.
+
+Examples:
 
 ```text
-Target → FOLLOWS → Account A → APPEARS_WITH → Event X
-Event X → Account B
+Target (private)
+  → SUGGESTED → Account A (mutual count: 12, recurring, multi-surface)
+  → Account A's public content → SHARED_EVENT → Event X
+  → Event X → Account B (also suggested around Target)
+```
+
+```text
+Target A → SUGGESTED_SET → [B, C, D]
+Target B → SUGGESTED_SET → [C, D, E]
+Target C → SUGGESTED_SET → [D, E, F]
+Shared cluster → [D, E] → COMMUNITY_CANDIDATE
 ```
 
 A connection is not automatically a conclusion. The system distinguishes:
@@ -48,6 +59,8 @@ A connection is not automatically a conclusion. The system distinguishes:
 ```text
 Observation → Derived relationship → Inference → Hypothesis → Supported hypothesis
 ```
+
+The goal is **reasoning over relationships**, not indiscriminate data collection.
 
 ---
 
@@ -90,7 +103,8 @@ instosint/
     ├── investigation-strategy.md
     ├── investigation-output.md
     ├── image-analysis.md
-    └── graph-model.md
+    ├── graph-model.md
+    └── suggestion-surface-analysis.md
 ```
 
 ### Reference Files
@@ -101,6 +115,7 @@ instosint/
 - `investigation-output.md` — final report structure
 - `image-analysis.md` — image and visual evidence methodology
 - `graph-model.md` — graph nodes, edges, and traversal
+- `suggestion-surface-analysis.md` — advanced suggestion-surface methodology including quantified features, fingerprinting, community detection, and weighted lead scoring
 
 ---
 

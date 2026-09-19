@@ -207,6 +207,7 @@ A lead should contain:
 - expected information gain
 - cost
 - status
+- score (from suggestion lead scoring model, if applicable)
 
 Example:
 
@@ -222,8 +223,58 @@ Could distinguish shared-community explanation from repeated personal associatio
 Expected information gain:
 HIGH
 
+Score:
+14 (HIGH-VALUE)
+Score breakdown:
+  recurrence: 3
+  mutual_count: 3
+  persistence: 2
+  multi_surface: 2
+  bidirectional: 0
+  corroboration: 4
+
 Status:
 UNINVESTIGATED
+```
+
+For suggestion-driven investigations, include the score breakdown so the investigation is traceable.
+
+---
+
+# 11a. Suggestion Investigation Output
+
+When the investigation includes suggestion surfaces, include:
+
+- SUGGESTION INVESTIGATION SUMMARY
+- Suggestion set fingerprint for each target
+- Persistent accounts across observations
+- High-value leads with scores
+- Suggestion graph (SUGGESTED edges with features)
+- Community detection results (if multi-target)
+
+Example:
+
+```text
+SUGGESTION INVESTIGATION SUMMARY
+
+Target: @target
+Surface: profile-page suggestion block
+Observations: 4
+Suggested accounts identified: 17
+High-value leads: 3
+
+Persistent accounts (appeared in >50% of observations):
+    @account_c — 4/4 observations, mutual count avg: 15.5
+    @account_d — 3/4 observations, mutual count avg: 8.0
+
+Suggestion graph:
+    @target
+        |-- SUGGESTED --> @account_c [recurrence: 4, mutual: 15.5, surfaces: 2]
+        |-- SUGGESTED --> @account_d [recurrence: 3, mutual: 8.0, surfaces: 1]
+
+High-value leads:
+    LEAD-001: @account_c — score 14 (HIGH-VALUE)
+    LEAD-002: @account_d — score 9 (STRONG)
 ```
 
 ---

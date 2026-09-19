@@ -383,6 +383,115 @@ External resources may be recorded as linked context, but unrestricted cross-pla
 
 ---
 
+# 14a. Profile-Page Suggestion Block (Private Accounts)
+
+When viewing a private account without following it, Instagram may display a suggestion block on or near the profile page.
+
+## 14a.1 Surface Identification
+
+Record the exact surface location:
+- profile-page suggestion block
+- "Suggested accounts" section
+- "Accounts you may know" section
+- any other suggestion surface observed
+
+The exact UI labels may vary. Record what is actually visible.
+
+## 14a.2 Observable Features
+
+For each suggested account, record all visible features:
+
+- username
+- display name
+- profile category if visible
+- profile image / verification status
+- mutual-connection count (e.g., "Followed by 12 accounts you follow")
+- suggestion context label (e.g., "Suggested for you", "Similar accounts")
+- position in the suggestion list
+- whether mutual connections are shown
+
+## 14a.3 Mutual Connection Count
+
+The mutual-connection count is the most directly quantitative feature.
+
+Record the exact count when available.
+
+```text
+@suggested_account — mutual count: 12
+```
+
+If the count is not shown:
+```text
+@suggested_account — mutual count: NOT_VISIBLE
+```
+
+Do not treat mutual count as relationship closeness.
+Treat it as a network-proximity quantifier.
+
+## 14a.4 Suggestion Set as Observation
+
+Record the full suggestion set from each observation:
+
+```text
+OBS-0XX
+
+Source:
+    Profile-page suggestion block for @target
+
+Suggestion set (ordered by observed position):
+    1. @account_a (mutual: 12, label: "Followed by 12 accounts you follow")
+    2. @account_b (mutual: 3, label: NOT_VISIBLE)
+    3. @account_c (mutual: 1, label: "Suggested for you")
+
+Timestamp:
+    observed timestamp
+```
+
+## 14a.5 Suggestion Set Delta
+
+When multiple observations of the same target's suggestion set are made, record the delta:
+
+```text
+OBS-0XX: [B, C, D]
+OBS-0XY: [B, C, E]
+
+DELTA:
+Persistent: [B, C]
+Disappeared: [D]
+Appeared: [E]
+```
+
+Persistent accounts are stronger leads than transient accounts.
+
+## 14a.6 Cross-Surface Triangulation
+
+The same account may appear across multiple suggestion surfaces.
+
+Record cross-surface appearances:
+
+```text
+OBS-0XX: @account_b appeared in profile-page suggestion block.
+OBS-0XY: @account_b appeared in "Accounts you may know."
+
+Derived: @account_b is surfaced across multiple surfaces associated with @target.
+```
+
+Multi-surface appearance increases signal reliability.
+
+## 14a.7 Suggestion Reliability
+
+Profile-page suggestions have the following general reliability characteristics:
+
+- DIRECT_OBSERVATION of the suggestion block: MODERATE
+- Mutual count shown: increases directness
+- Recurrence across observations: increases confidence
+- Multi-surface appearance: increases confidence
+- Independent public corroboration: required for stronger conclusions
+
+All suggestion evidence is at most MODERATE until independent public corroboration is found.
+
+---
+
 # 15. Surface Reliability
 
 Use the following general hierarchy:

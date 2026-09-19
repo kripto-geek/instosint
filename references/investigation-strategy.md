@@ -327,9 +327,57 @@ Do not conclude:
 recommended = close relationship
 ```
 
+See `references/suggestion-surface-analysis.md` for the full recommendation-driven investigation methodology, including quantified features, lead scoring, and community detection.
+
 ---
 
-# 16. Contradiction Search
+# 16. Suggestion Lead Scoring
+
+Use the qualitative lead-scoring model to prioritize suggestion leads.
+
+Score components:
+- recurrence: 1-3 points
+- mutual count: 1-3 points
+- persistence ratio: 1-3 points
+- multi-surface presence: 1-3 points
+- bidirectional: 0-1 points
+- independent corroboration: 0-4 points
+
+Score ranges:
+- 0-3: WEAK lead
+- 4-6: MODERATE lead
+- 7-9: STRONG lead
+- 10+: HIGH-VALUE lead
+
+Prioritize investigation of HIGH-VALUE and STRONG leads first.
+
+Score is a prioritization tool, not a proof of relationship.
+
+---
+
+# 17. Community Detection via Suggestion Sets
+
+When investigating multiple private targets:
+1. Collect suggestion sets for each target.
+2. Compare suggestion sets for overlap.
+3. Identify accounts that appear across many targets' suggestion sets.
+4. Identify strongly connected suggestion clusters.
+
+Accounts appearing across many targets' suggestion sets are:
+```text
+COMMUNITY_CANDIDATE
+```
+
+not:
+```text
+CONFIRMED_GROUP_MEMBERSHIP
+```
+
+Community detection from suggestions produces hypotheses about shared network membership that require independent corroboration.
+
+---
+
+# 18. Contradiction Search
 
 For every important hypothesis ask:
 
