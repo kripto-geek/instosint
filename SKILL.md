@@ -1,6 +1,6 @@
 ---
 name: instosint
-description: Instagram-focused public-data investigation skill. Investigates publicly observable Instagram accounts, including private-account surrounding signals such as recommendations, mutuals, public network context, interactions, recurring entities, and visual context. Builds a traceable evidence graph, recursively investigates high-value leads, and separates observations from hypotheses and conclusions. Includes advanced suggestion-surface analysis with quantified features, fingerprinting, community detection, and weighted lead scoring.
+description: Investigate Instagram public-data and build evidence graphs.
 ---
 
 # INSTOSINT
@@ -10,6 +10,81 @@ INSTOSINT is an Instagram-focused public-data investigation methodology.
 It is an investigation and reasoning system, not an access-control bypass mechanism.
 
 The goal is to discover and explain publicly observable connections around an Instagram target, including targets whose own profile content is private or otherwise inaccessible.
+
+INSTOSINT is fully automatic. Do not stop for manual setup, vault prompts, or missing prerequisites. If a capability is unavailable, degrade gracefully and continue with whatever is observable.
+
+---
+
+# 0. Skill Bootstrap
+
+## 0.1 Automatic Environment Setup
+
+Before beginning any investigation, INSTOSINT MUST automatically ensure the environment is ready.
+
+1. Verify `browser-use` is available by checking `which browser-use` or equivalent.
+2. If available, run `browser-use doctor` and attempt to resolve common issues:
+   - If `browser-use doctor --fix-snap` is applicable, run it.
+   - If the daemon is not running, restart it.
+   - If Chrome/Chromium is not running, launch it.
+3. If `browser-use` is not available:
+   - Attempt to install or upgrade it automatically:
+     - Run `browser-use --update -y` if the CLI exists.
+     - Otherwise follow `https://github.com/browser-use/browser-harness/blob/main/install.md` and run the documented install steps.
+   - If installation fails, record the failure and continue without browser automation.
+4. Run `browser-use skill install` to register the browser-use skill if needed.
+5. After setup, attempt to connect to the browser.
+
+Record setup result:
+- READY
+- DEGRADED
+- FAILED
+
+## 0.2 Automatic Authentication
+
+INSTOSINT MUST NOT stop for missing credentials. Instead:
+
+1. Call `browser_vault_list`.
+2. If an Instagram login item exists for `https://www.instagram.com`, use it automatically via `browser_vault_fill`.
+3. If no vault item exists:
+   - Open `https://www.instagram.com/accounts/login/` in an isolated browser session named `instosint-<target_username>`.
+   - Call `browser_vault_save_login` to prompt the user to save credentials.
+   - If saved, fill and authenticate automatically.
+   - If declined, leave the browser open and prompt the user to complete manual login in the browser session.
+   - Wait for the session to become authenticated.
+4. If 2FA is required:
+   - If the vault item has an authenticator key, call `browser_vault_enter_code` automatically.
+   - Otherwise, prompt the user to complete 2FA in their UI and wait.
+
+Record auth state:
+- AUTHENTICATED
+- PENDING_USER_LOGIN
+- NOT_AUTHENTICATED
+
+## 0.3 Investigation Modes
+
+INSTOSINT supports two modes:
+
+1. Full mode: browser automation + authenticated session available
+   - Inspect all observable surfaces
+   - Include suggestion surfaces, public posts, comments, images
+
+2. Public-only mode: browser automation unavailable or session not authenticated
+   - Inspect only surfaces reachable without a logged-in session
+   - Record each surface as OBSERVED or NOT_AVAILABLE
+   - Do not infer that unobserved surfaces are empty
+
+The mode is determined by available tools and session state.
+
+## 0.4 Skill Entry Point
+
+When a user invokes INSTOSINT with a target:
+
+1. Run automatic setup
+2. Run automatic authentication
+3. State the determined mode and auth state
+4. If setup failed completely, proceed in public-only mode
+5. Begin TARGET_SURFACE_CHECK
+6. Never stop for missing prerequisites. Always proceed with available capabilities.
 
 ---
 
@@ -67,7 +142,6 @@ PUBLICLY OBSERVABLE CONTEXT AROUND THE TARGET
 ```
 
 The former must not be accessed or bypassed.
-
 The latter may be investigated when genuinely observable.
 
 ## 3. Public / Authorized Scope
@@ -100,45 +174,27 @@ INSTOSINT must NOT:
 
 If the target is private, investigate only what is actually observable.
 
-## 3a. Browser-Based Access Layer (Optional)
+## 3a. Browser-Based Access Layer
 
-Instagram's frontend is JS-heavy and may block direct HTTP requests.
+INSTOSINT uses browser automation as the primary data-access layer.
+It is not optional; it is the expected path for Instagram investigation.
 
-INSTOSINT may use browser automation as an **optional data-access layer**
-when direct HTTP access is unavailable or insufficient.
+### 3a.1 Automatic Authentication Flow
 
-### 3a.1 Authorization Requirements
+INSTOSINT uses this automatic flow:
 
-Browser automation requires:
-- an authorized test Instagram account created by the user
-- a vault login item for `https://www.instagram.com` containing the test
-  account credentials, created via Hermes vault save/fill flow
-- explicit user consent to use browser automation
-
-The test account must:
-- be created by the user for investigation purposes
-- contain no personal data
-- not follow the target or related accounts before investigation
-- not interact with the target's content during investigation
-
-### 3a.2 Vault Authentication Flow
-
-INSTOSINT uses the Hermes vault for credential management:
-
-1. Call `browser_vault_list` and identify an Instagram login item bound to
-   `https://www.instagram.com`
-2. If no item exists, stop and request the user save credentials via
-   `browser_vault_save_login` or the Hermes vault UI
-3. Navigate to the Instagram login page in an isolated browser session
-4. Fill the username/identifier field manually
-5. Call `browser_vault_fill` with the Instagram handle to fill the password
-6. Submit the login form and validate session state
-7. If 2FA is required, use `browser_vault_enter_code` when possible;
-   otherwise the user completes 2FA in their UI
+1. Call `browser_vault_list` and identify an Instagram login item bound to `https://www.instagram.com`
+2. If found, use it to authenticate automatically
+3. If not found, open the Instagram login page in an isolated browser session named `instosint-<target_username>`
+4. Call `browser_vault_save_login` to prompt the user to save credentials
+5. If saved, fill and authenticate automatically
+6. If declined, leave the browser open and prompt the user to complete manual login in the browser
+7. Wait for the session to become authenticated
+8. If 2FA is required, use `browser_vault_enter_code` when possible; otherwise the user completes 2FA in their UI
 
 See `references/browser-access.md` for the full browser-access protocol.
 
-### 3a.3 Permitted Uses
+### 3a.2 Permitted Uses
 
 Browser automation may be used to observe:
 - public profile pages
@@ -148,7 +204,7 @@ Browser automation may be used to observe:
 - public mentions/tags
 - public visual content for screenshots/evidence
 
-### 3a.4 Prohibited Uses
+### 3a.3 Prohibited Uses
 
 Browser automation must NOT be used to:
 - access private content the user's account is not authorized to see
@@ -158,7 +214,7 @@ Browser automation must NOT be used to:
 - access DMs or private stories
 - perform any action that would not be taken manually
 
-### 3a.5 Guardrails
+### 3a.4 Guardrails
 
 - session cookies and vault handles are sensitive credentials
 - never log or expose vault secret values in investigation output
@@ -348,7 +404,6 @@ B ↛ follows Target
 ```
 
 This may still justify investigating Account B as a lead if the suggestion is actually observable.
-
 But:
 
 ```text
@@ -518,11 +573,13 @@ When investigating multiple private targets:
 - generate hypotheses about shared network membership
 
 Community detection from suggestions produces:
+
 ```text
 COMMUNITY_CANDIDATE
 ```
 
 not:
+
 ```text
 CONFIRMED_GROUP_MEMBERSHIP
 ```
@@ -646,7 +703,6 @@ If the profile page shows no suggestion block:
 ### Rate-limited or altered results
 
 Instagram may alter suggestions based on request patterns.
-
 If results appear inconsistent:
 1. Record each observation separately with timestamp.
 2. Do not merge inconsistent observations.
@@ -656,7 +712,6 @@ If results appear inconsistent:
 ### Suggestion block changes on reload
 
 Instagram may show different suggestion sets on successive page reloads within the same session.
-
 If results change between reloads:
 1. Record each observation separately with timestamp.
 2. Assign each observation to the same session/independence group.
@@ -830,7 +885,6 @@ PUBLIC ENTITIES
 ```
 
 The investigator may recursively explore the public side.
-
 The recursion must always have a reason.
 
 Example:
@@ -1365,5 +1419,4 @@ and which of those signals can generate high-value leads?"
 ```
 
 A private target may have little directly observable content while still being surrounded by useful public signals.
-
 The investigation must exploit those signals without bypassing privacy controls.
