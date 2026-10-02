@@ -5,41 +5,40 @@ description: Investigate Instagram public-data and build evidence graphs.
 
 # INSTOSINT
 
-INSTOSINT is an Instagram-focused public-data investigation methodology.
-
-It is an investigation and reasoning system, not an access-control bypass mechanism.
+INSTOSINT is an aggressive, fully automatic Instagram public-data investigation system.
+It is an investigation methodology, not an access-control bypass mechanism.
 
 The goal is to discover and explain publicly observable connections around an Instagram target, including targets whose own profile content is private or otherwise inaccessible.
 
-INSTOSINT is fully automatic. Do not stop for manual setup, vault prompts, or missing prerequisites. If a capability is unavailable, degrade gracefully and continue with whatever is observable.
+INSTOSINT never stops for missing prerequisites. If one path fails, it immediately forces an alternative path. It does not degrade gracefully — it fights through obstacles.
 
 ---
 
 # 0. Skill Bootstrap
 
-## 0.1 Automatic Environment Setup
+## 0.1 Automatic Environment Setup — AGGRESSIVE MODE
 
 Before beginning any investigation, INSTOSINT MUST automatically ensure the environment is ready.
 
 1. Verify `browser-use` is available by checking `which browser-use` or equivalent.
 2. If available, run `browser-use doctor` and attempt to resolve common issues:
    - If `browser-use doctor --fix-snap` is applicable, run it.
-   - If the daemon is not running, restart it.
-   - If Chrome/Chromium is not running, launch it.
+   - If the daemon is not running, restart it immediately.
+   - If Chrome/Chromium is not running, launch it immediately.
 3. If `browser-use` is not available:
    - Attempt to install or upgrade it automatically:
      - Run `browser-use --update -y` if the CLI exists.
      - Otherwise follow `https://github.com/browser-use/browser-harness/blob/main/install.md` and run the documented install steps.
-   - If installation fails, record the failure and continue without browser automation.
+   - If installation fails, record the failure and DO NOT stop. Continue without browser automation.
 4. Run `browser-use skill install` to register the browser-use skill if needed.
-5. After setup, attempt to connect to the browser.
+5. After setup, attempt to connect to the browser. If connection fails, force-launch a browser session.
 
 Record setup result:
 - READY
 - DEGRADED
 - FAILED
 
-## 0.2 Automatic Authentication
+## 0.2 Automatic Authentication — AGGRESSIVE MODE
 
 INSTOSINT MUST NOT stop for missing credentials. Instead:
 
@@ -60,7 +59,7 @@ Record auth state:
 - PENDING_USER_LOGIN
 - NOT_AUTHENTICATED
 
-## 0.3 Investigation Modes
+## 0.3 Investigation Modes — NO SURRENDER
 
 INSTOSINT supports two modes:
 
@@ -68,23 +67,25 @@ INSTOSINT supports two modes:
    - Inspect all observable surfaces
    - Include suggestion surfaces, public posts, comments, images
 
-2. Public-only mode: browser automation unavailable or session not authenticated
+2. Public-only mode: ONLY if browser automation is completely unavailable after all recovery attempts
    - Inspect only surfaces reachable without a logged-in session
    - Record each surface as OBSERVED or NOT_AVAILABLE
-   - Do not infer that unobserved surfaces are empty
+   - Do NOT infer that unobserved surfaces are empty
+   - ALWAYS attempt browser automation first; public-only is the LAST resort
 
-The mode is determined by available tools and session state.
+The mode is determined by available tools and session state. Public-only mode is a failure fallback, not a normal operating mode.
 
-## 0.4 Skill Entry Point
+## 0.4 Skill Entry Point — AGGRESSIVE ENTRY
 
 When a user invokes INSTOSINT with a target:
 
-1. Run automatic setup
-2. Run automatic authentication
+1. Run automatic setup with maximum aggression
+2. Run automatic authentication with maximum aggression
 3. State the determined mode and auth state
-4. If setup failed completely, proceed in public-only mode
+4. If setup failed completely, proceed in public-only mode but mark as DEGRADED
 5. Begin TARGET_SURFACE_CHECK
-6. Never stop for missing prerequisites. Always proceed with available capabilities.
+6. NEVER stop for missing prerequisites. ALWAYS proceed with available capabilities.
+7. If browser automation fails, immediately try alternative recovery paths before falling back to public-only.
 
 ---
 
@@ -119,7 +120,6 @@ A target may have a private profile while Instagram still exposes publicly obser
 A private Instagram account may expose limited direct information while still producing observable platform context.
 
 Examples may include:
-
 - profile metadata
 - publicly visible account information
 - recommendation surfaces
@@ -147,7 +147,6 @@ The latter may be investigated when genuinely observable.
 ## 3. Public / Authorized Scope
 
 INSTOSINT may use:
-
 - publicly observable Instagram data
 - authorized data supplied by the user/tool
 - public account information
@@ -162,7 +161,6 @@ INSTOSINT may use:
 - public visual information
 
 INSTOSINT must NOT:
-
 - bypass private-account restrictions
 - bypass authentication
 - bypass access controls
@@ -174,14 +172,14 @@ INSTOSINT must NOT:
 
 If the target is private, investigate only what is actually observable.
 
-## 3a. Browser-Based Access Layer
+## 3a. Browser-Based Access Layer — AGGRESSIVE MODE
 
 INSTOSINT uses browser automation as the primary data-access layer.
 It is not optional; it is the expected path for Instagram investigation.
 
-### 3a.1 Automatic Authentication Flow
+### 3a.1 Automatic Authentication Flow — AGGRESSIVE
 
-INSTOSINT uses this automatic flow:
+INSTOSINT uses this automatic flow with ZERO tolerance for failure:
 
 1. Call `browser_vault_list` and identify an Instagram login item bound to `https://www.instagram.com`
 2. If found, use it to authenticate automatically
@@ -191,6 +189,8 @@ INSTOSINT uses this automatic flow:
 6. If declined, leave the browser open and prompt the user to complete manual login in the browser
 7. Wait for the session to become authenticated
 8. If 2FA is required, use `browser_vault_enter_code` when possible; otherwise the user completes 2FA in their UI
+9. IF AUTHENTICATION FAILS, RETRY WITH ALTERNATIVE BROWSER SESSION
+10. IF STILL FAILING, FORCE-LAUNCH FRESH BROWSER INSTANCE AND RETRY
 
 See `references/browser-access.md` for the full browser-access protocol.
 
@@ -214,7 +214,7 @@ Browser automation must NOT be used to:
 - access DMs or private stories
 - perform any action that would not be taken manually
 
-### 3a.4 Guardrails
+### 3a.4 Guardrails — STRICT
 
 - session cookies and vault handles are sensitive credentials
 - never log or expose vault secret values in investigation output
@@ -223,6 +223,7 @@ Browser automation must NOT be used to:
 - stop immediately if Instagram blocks or challenges the session
 - record each observation with timestamp and access method
 - use named isolated browser sessions per investigation
+- NEVER give up after one failure; always try alternative recovery paths
 
 See `references/browser-access.md` for the full browser-access protocol.
 
@@ -240,7 +241,7 @@ browser_exec(
 
 This isolates tab state, cookies, and navigation from other work.
 
-## 4. Investigation Model
+## 4. Investigation Model — AGGRESSIVE
 
 The investigation follows:
 
@@ -296,17 +297,16 @@ STOPPED_LOW_VALUE
 STOPPED_BUDGET
 ```
 
-## 6. Initial Target Assessment
+## 6. Initial Target Assessment — NO WEAK EXITS
 
 Before declaring an investigation blocked, determine:
-
 - Is the target profile itself observable?
 - Is the target private?
 - Are recommendation/suggestion surfaces observable?
 - Are mutual/public network signals observable?
 - Are other public surfaces surrounding the target observable?
 
-The investigation should continue if useful surrounding signals exist.
+The investigation MUST continue if useful surrounding signals exist. Do not exit early.
 
 Example:
 
@@ -315,7 +315,7 @@ Target profile: PRIVATE
 Direct posts: NOT AVAILABLE
 Recommendation surface: OBSERVED
 
-Result: INVESTIGATION CAN CONTINUE
+Result: INVESTIGATION CONTINUES AGGRESSIVELY
 ```
 
 ## 7. Recommendation / Suggestion Surface
@@ -323,7 +323,6 @@ Result: INVESTIGATION CAN CONTINUE
 Recommendation behavior is a first-class lead source.
 
 When Instagram visibly surfaces accounts around a target, record:
-
 - target
 - suggested account
 - whether mutual connections are shown
@@ -360,7 +359,6 @@ That is an inference, not an observation.
 ## 8. Recommendation Signals Are Leads
 
 A recommendation is not proof of:
-
 - friendship
 - romantic relationship
 - family relationship
@@ -504,7 +502,6 @@ The purpose is to determine whether independent public evidence connects the lea
 ## 12b. Suggestion Evidence Requirements
 
 Every suggestion observation must record:
-
 - target account
 - suggested account
 - exact surface where observed
@@ -690,7 +687,7 @@ INSUFFICIENT_EVIDENCE (leads exhausted without strong corroboration)
 STOPPED_LOW_VALUE (remaining leads are weak)
 ```
 
-## 12g. Edge Cases
+## 12g. Edge Cases — AGGRESSIVE HANDLING
 
 ### No suggestions visible
 
@@ -708,6 +705,7 @@ If results appear inconsistent:
 2. Do not merge inconsistent observations.
 3. Note variability in the report.
 4. Increase observation intervals.
+5. ALWAYS retry with alternative browser session if blocked.
 
 ### Suggestion block changes on reload
 
@@ -718,6 +716,7 @@ If results change between reloads:
 3. Do not merge observations into a single "true" set.
 4. Use delta analysis to identify persistent vs. transient accounts.
 5. Persistent accounts are stronger leads; transient accounts may be algorithmic noise.
+6. RETRY with fresh browser session if results become suspicious.
 
 ### Empty suggestion set
 
@@ -725,6 +724,7 @@ If the block is present but empty:
 1. Record: `SUGGESTION_SET = EMPTY`
 2. This may indicate: new account, low activity, or algorithmic suppression.
 3. Proceed to other surfaces.
+4. ALWAYS retry with alternative session to confirm.
 
 ### Single suggestion
 
@@ -733,7 +733,7 @@ If only one account is suggested:
 2. A single suggestion is a WEAK lead without corroboration.
 3. Do not treat it as more reliable than a multi-account set.
 
-### Fallback decision tree
+### Fallback decision tree — AGGRESSIVE
 
 When suggestion-driven investigation stalls, use this decision tree:
 
@@ -957,11 +957,9 @@ STRONG
 ```
 
 Do not assign strength merely because:
-
 - many weak signals exist
 
 Consider:
-
 - source reliability
 - specificity
 - independence
@@ -999,7 +997,6 @@ should not be treated as independent evidence.
 Images are first-class evidence.
 
 Inspect publicly observable images for:
-
 - people
 - places
 - events
@@ -1039,7 +1036,6 @@ CONFIRMED_PERSONAL_RELATIONSHIP
 Do not identify a person from weak similarity.
 
 Possible signals:
-
 - username similarity
 - display-name similarity
 - profile image similarity
@@ -1063,7 +1059,6 @@ CONFIRMED_IDENTITY
 ## 21. Relationship Types
 
 Useful relationships include:
-
 - FOLLOWS
 - FOLLOWED_BY
 - SUGGESTED
@@ -1084,7 +1079,6 @@ Useful relationships include:
 - TEMPORAL_OVERLAP
 
 Avoid inventing relationship types such as:
-
 - BOYFRIEND_OF
 - GIRLFRIEND_OF
 - SECRET_PARTNER_OF
@@ -1170,7 +1164,6 @@ What evidence would make this explanation less likely?
 ```
 
 Search for:
-
 - contradictory timestamps
 - incompatible locations
 - unrelated contexts
@@ -1182,7 +1175,6 @@ Search for:
 ## 26. Lead Prioritization
 
 Each lead should have:
-
 - LEAD-ID
 - target
 - reason
@@ -1192,7 +1184,6 @@ Each lead should have:
 - status
 
 Prioritize leads that:
-
 - could distinguish competing hypotheses
 - have independent evidence potential
 - are strongly connected to current observations
@@ -1203,7 +1194,6 @@ Prioritize leads that:
 Do not recursively investigate everything.
 
 Possible limits:
-
 - maximum depth
 - maximum accounts
 - maximum posts
@@ -1216,7 +1206,6 @@ Stop when additional exploration is unlikely to materially improve the result.
 ## 28. Stop Conditions
 
 Stop when:
-
 - question sufficiently answered
 - useful public leads exhausted
 - evidence remains insufficient
@@ -1225,7 +1214,6 @@ Stop when:
 - budget exhausted
 
 Possible result:
-
 ```text
 COMPLETED
 INSUFFICIENT_EVIDENCE
@@ -1240,7 +1228,6 @@ BLOCKED_NO_DATA
 Do not confidently infer sensitive personal relationships from weak public signals.
 
 For example:
-
 - likes
 - follows
 - recommendations
@@ -1249,7 +1236,6 @@ For example:
 - comments
 
 do not independently establish:
-
 - romantic relationship
 - sexual relationship
 - family relationship
@@ -1260,7 +1246,6 @@ If such a hypothesis is investigated, clearly label it as unresolved unless suff
 ## 30. No Fabrication
 
 Never invent:
-
 - accounts
 - usernames
 - posts
@@ -1296,7 +1281,6 @@ These are allowed only inside explicitly marked:
 ## 31. Data Availability
 
 Use:
-
 ```text
 OBSERVED
 PARTIALLY_OBSERVED
@@ -1305,7 +1289,6 @@ UNKNOWN
 ```
 
 For a private target:
-
 ```text
 private posts = NOT_AVAILABLE
 public recommendation surface = OBSERVED
@@ -1420,3 +1403,20 @@ and which of those signals can generate high-value leads?"
 
 A private target may have little directly observable content while still being surrounded by useful public signals.
 The investigation must exploit those signals without bypassing privacy controls.
+
+---
+
+# 36. AGGRESSIVE RECOVERY PROTOCOL
+
+When any browser automation step fails:
+
+1. RECORD the exact failure mode
+2. IMMEDIATELY try alternative browser session
+3. IF FAILED, force-launch fresh browser instance
+4. IF STILL FAILED, try alternative navigation path
+5. IF STILL FAILED, try alternative data source
+6. ONLY IF ALL PATHS FAIL, mark as NOT_AVAILABLE and pivot
+7. NEVER accept first failure as final
+8. ALWAYS attempt at least 3 different recovery paths before falling back
+
+This is non-negotiable. The skill fights through obstacles, it doesn't surrender to them.
