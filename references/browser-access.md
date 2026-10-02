@@ -1,13 +1,21 @@
 # Browser-Based Instagram Access Layer
 
-This document defines how INSTOSINT can use browser automation to access
-publicly observable Instagram surfaces when raw HTTP access is blocked.
+This document defines how INSTOSINT can use Hermes browser automation to
+access publicly observable Instagram surfaces when raw HTTP access is blocked.
 
 This is an optional data-access layer. INSTOSINT's reasoning methodology
 works without it. It is provided to make the skill executable against
 Instagram's JS-heavy, anti-bot frontend.
 
+The implementation uses:
+- `browser_exec` for navigation, observation, and screenshots
+- `browser_vault_list`, `browser_vault_fill`, `browser_vault_save_login`,
+  and `browser_vault_enter_code` for credential access via the Hermes vault
+- Named browser sessions to isolate investigation state
+
 ---
+
+
 
 # 1. Core Principle
 
@@ -25,6 +33,8 @@ data, no follows, and no activity. It exists solely to observe public surfaces.
 
 ---
 
+
+
 # 2. When to Use Browser Access
 
 Use browser access when:
@@ -40,6 +50,8 @@ Do NOT use browser access when:
 
 ---
 
+
+
 # 3. Prerequisites
 
 ## 3.1 Authorized Test Account
@@ -48,19 +60,19 @@ The user must:
 1. Create a dedicated test Instagram account
 2. Not follow the target or any related accounts
 3. Not interact with the target's content
-4. Provide session cookies or login credentials
+4. Provide session cookies or login credentials via the Hermes vault
 
 The test account should be:
 - empty of personal data
 - empty of follows/following where possible
 - used only for observation
 
-## 3.2 Session Credentials
+## 3.2 Session Credentials via Vault
 
 INSTOSINT requires one of:
-- session cookies from an authenticated browser session
-- username/password for automated login
-- exported session state from browser DevTools
+- a vault login item bound to `https://www.instagram.com` containing the
+  test account identifier and password
+- credentials saved through the Hermes vault UI
 
 The user is responsible for:
 - creating the test account
@@ -69,32 +81,107 @@ The user is responsible for:
 
 INSTOSINT does not create, manage, or verify accounts.
 
+The vault is the only supported credential store for this skill.
+Session cookies are sensitive credentials and must not be committed to
+version control, logged in investigation output, or stored outside the
+Hermes vault/session mechanism.
+
 ---
 
-# 4. Browser Configuration
 
-## 4.1 Recommended Setup
+
+# 4. Vault Authentication Flow
+
+## 4.1 Credential Discovery
 
 ```text
-browser: chromium or firefox
-mode: headless or visible (user preference)
-user_agent: standard desktop browser user agent
-viewport: 1280x800 or larger
-cookies: loaded from user-provided session file
+1. Call browser_vault_list
+2. Identify an Instagram login item bound to https://www.instagram.com
+3. If found, record the handle and identifier/username
+4. If not found, stop and request user action:
+   - save credentials via browser_vault_save_login, or
+   - add the item through the Hermes vault UI
 ```
 
-## 4.2 Anti-Detection
+Do not continue browser automation without an authorized vault-backed login
+item for Instagram.
+
+## 4.2 Login Procedure
+
+```text
+1. Open https://www.instagram.com/accounts/login/ in an isolated session
+2. Fill the username/identifier field with the vault item's identifier
+3. Call browser_vault_fill with the Instagram vault handle
+   - this fills ONLY the password field
+   - do not type the password manually
+4. Submit the login form
+5. Wait for redirect or home load
+6. If a 2FA/verification screen appears:
+   - if the vault item has an authenticator key, call browser_vault_enter_code
+   - otherwise the user completes 2FA in their UI
+7. Validate session state before proceeding
+```
+
+## 4.3 Session Validation
+
+Before investigation:
+- verify the test account is logged in
+- check for login challenges / 2FA requirements
+- record session state
+
+If the session becomes invalid during investigation:
+- record partial observations
+- stop and report session failure
+
+## 4.4 Vault Guardrails
+
+- never log or expose vault secret values
+- never commit vault state to version control
+- session cookies remain within the isolated Hermes browser session
+- the vault handle is the authoritative credential reference
+
+---
+
+
+
+# 5. Browser Configuration
+
+## 5.1 Required Setup
+
+```text
+browser: chromium or firefox via Hermes browser_exec
+mode: headless or visible (user preference)
+session: named isolated session per investigation
+user_agent: standard desktop browser user agent
+viewport: 1280x800 or larger
+cookies: loaded from Hermes browser session after vault-backed login
+```
+
+## 5.2 Session Isolation
+
+Use a named browser session for each investigation:
+
+```python
+browser_exec(
+    code="...",
+    session="instosint-<target_username>",
+    timeout_s=240
+)
+```
+
+This isolates tab state, cookies, and navigation from other work.
+
+## 5.3 Anti-Detection
 
 Instagram may detect automation. Use standard anti-detection:
 - realistic user agent
 - standard viewport size
-- avoid headless-specific signals where possible
 - respect rate limits
 
 Do NOT attempt to hide automation from Instagram if it violates
 Instagram's Terms of Service.
 
-## 4.3 Rate Limits
+## 5.4 Rate Limits
 
 Respect Instagram's rate limits:
 - minimum delay between page loads: 2-5 seconds
@@ -104,42 +191,104 @@ Respect Instagram's rate limits:
 
 ---
 
-# 5. Navigation Patterns
 
-## 5.1 Profile Page
 
-```text
-1. Navigate to https://www.instagram.com/<target_username>/
-2. Wait for page load
-3. Check for login wall / private account notice
-4. If suggestion block is visible, record it
-5. If blocked, record state and stop
+# 6. Navigation Patterns
+
+## 6.1 Profile Page
+
+```python
+new_tab("https://www.instagram.com/<target_username>/")
+wait_for_load()
+page = page_info()
+print(page)
+capture_screenshot()
 ```
 
-## 5.2 Suggestion Block Observation
+Check for:
+- login wall / private account notice
+- suggestion block visibility
+- public posts visibility
+- blocked/challenged state
 
-```text
-1. Scroll to suggestion block section
-2. Record all visible suggested accounts
-3. For each: username, position, mutual count, context label
-4. Take screenshot for evidence
-5. Record timestamp
+## 6.2 Suggestion Block Observation
+
+```python
+# After loading the profile page:
+# 1. Scroll to suggestion block if needed
+js('window.scrollTo(0, document.body.scrollHeight)')
+wait_for_load()
+
+# 2. Extract suggestion block content via JS
+suggestions = js('''() => {
+  // Inspect the actual DOM structure; adjust selectors to observed UI
+  const results = [];
+  const items = document.querySelectorAll('...suggestion selector...');
+  items.forEach((item, index) => {
+    const username = item.querySelector('...')?.textContent || '';
+    const mutual = item.querySelector('...')?.textContent || '';
+    const label = item.querySelector('...')?.textContent || '';
+    results.push({ position: index + 1, username, mutual, label });
+  });
+  return results;
+}''')
+print(suggestions)
+capture_screenshot()
 ```
 
-## 5.3 "Accounts You May Know" Surface
+Record:
+- each suggested account username
+- position in list
+- mutual-connection count or NOT_VISIBLE
+- context label or NOT_VISIBLE
+- screenshot path
 
-```text
-1. Navigate to Instagram home/explore with test account
-2. Locate "Accounts you may know" section
-3. Check if target appears in suggestions
-4. Record same features as profile-page suggestions
+## 6.3 "Accounts You May Know" Surface
+
+```python
+new_tab("https://www.instagram.com/explore/")
+wait_for_load()
+page = page_info()
+print(page)
+capture_screenshot()
+```
+
+Locate the "Accounts you may know" section and extract the same features
+as profile-page suggestions.
+
+## 6.4 Public Post Inspection
+
+```python
+# Navigate to a specific public post if surfaced
+new_tab("https://www.instagram.com/p/<post_shortcode>/")
+wait_for_load()
+page = page_info()
+print(page)
+capture_screenshot()
+
+# Extract caption, comments, likes, mentions, tags
+caption = js('''() => {
+  const el = document.querySelector('...caption selector...');
+  return el ? el.textContent : '';
+}''')
+comments = js('''() => {
+  // Extract visible comment usernames and text
+  const results = [];
+  document.querySelectorAll('...comment selector...').forEach(c => {
+    results.push(c.textContent.trim());
+  });
+  return results;
+}''')
+print({"caption": caption, "comments": comments})
 ```
 
 ---
 
-# 6. Observation Protocol
 
-## 6.1 Canonical Observation Record
+
+# 7. Observation Protocol
+
+## 7.1 Canonical Observation Record
 
 ```text
 OBS-XXX
@@ -178,7 +327,7 @@ Reliability:
     MODERATE
 ```
 
-## 6.2 Screenshot Evidence
+## 7.2 Screenshot Evidence
 
 When a screenshot is taken:
 - save with timestamp and target in filename
@@ -190,21 +339,26 @@ They are not evidence of what the content means.
 
 ---
 
-# 7. Session Management
 
-## 7.1 Session Loading
+
+# 8. Session Management
+
+## 8.1 Session Loading via Vault
 
 ```text
-1. User provides session cookies or login credentials
-2. Load cookies into browser context
-3. Navigate to instagram.com to verify session
-4. If session is valid, proceed
-5. If session is invalid, report and stop
+1. Call browser_vault_list
+2. Identify Instagram login handle
+3. If not found, stop and request user action
+4. Navigate to Instagram login page
+5. Fill username manually
+6. Fill password via browser_vault_fill
+7. Submit and wait for redirect
+8. Validate session state
 ```
 
-## 7.2 Session Validation
+## 8.2 Session Validation
 
-Before each investigation:
+Before each investigation phase:
 - verify the test account is logged in
 - check for login challenges / 2FA requirements
 - record session state
@@ -213,18 +367,21 @@ If the session becomes invalid during investigation:
 - record partial observations
 - stop and report session failure
 
-## 7.3 Session Storage
+## 8.3 Session Termination
 
-Session cookies may be stored locally for reuse.
-- store in a secure location
-- do not commit to version control
-- treat as sensitive credentials
+When investigation is complete:
+- do not manually log out unless requested
+- close the browser session or navigate away
+- session cookies remain in the isolated browser session until the
+  session is terminated by Hermes or the user
 
 ---
 
-# 8. Guardrails
 
-## 8.1 Interaction Prohibitions
+
+# 9. Guardrails
+
+## 9.1 Interaction Prohibitions
 
 Do NOT:
 - follow the target
@@ -236,7 +393,7 @@ Do NOT:
 - block accounts
 - modify any account settings
 
-## 8.2 Content Access Limits
+## 9.2 Content Access Limits
 
 Only access content that would be visible to the test account
 without any special authorization:
@@ -251,7 +408,7 @@ Do NOT access:
 - DMs
 - any content gated by follow/friend relationship
 
-## 8.3 Test Account Integrity
+## 9.3 Test Account Integrity
 
 - do not follow the target during investigation
 - do not interact with suggested accounts
@@ -260,7 +417,9 @@ Do NOT access:
 
 ---
 
-# 9. Fallback Behavior
+
+
+# 10. Fallback Behavior
 
 If browser automation fails:
 1. Record the failure mode
@@ -271,11 +430,22 @@ If browser automation fails:
 Do not retry failed browser sessions in a loop.
 Increase wait time between retries.
 
+Failure modes to record:
+- vault item not found
+- login failure
+- 2FA challenge not completable
+- session validation failure
+- page load timeout
+- Instagram block/challenge
+- suggestion surface not visible
+
 ---
 
-# 10. Evidence Handling
 
-## 10.1 Screenshot Evidence
+
+# 11. Evidence Handling
+
+## 11.1 Screenshot Evidence
 
 ```text
 SRC-IMAGE-001
@@ -296,10 +466,10 @@ Observed at:
     timestamp
 
 File:
-    screenshots/2026-09-19_target_suggestion_block.png
+    screenshots/2026-10-02_target_suggestion_block.png
 ```
 
-## 10.2 Browser Session Evidence
+## 11.2 Browser Session Evidence
 
 ```text
 SRC-BROWSER-001
@@ -308,23 +478,34 @@ Type:
     browser_session
 
 Session:
-    test_account_01
+    instosint-<target_username>
 
 Login status:
     authenticated at timestamp
 
-Cookies source:
-    user-provided session file
+Vault-backed authentication:
+    YES
+
+Access method:
+    browser_automation + vault_authentication
 ```
 
 ---
 
-# 11. Investigation Flow with Browser Access
+
+
+# 12. Investigation Flow with Browser Access
 
 ```text
 TARGET
   ↓
+VAULT CHECK (browser_vault_list)
+  ├── NO ITEM → STOP, request user save/login
+  └── ITEM FOUND → proceed
+  ↓
 BROWSER NAVIGATION (profile page)
+  ↓
+LOGIN IF NEEDED (vault fill + validation)
   ↓
 SUGGESTION BLOCK OBSERVED?
   ├── YES → record features, score leads, investigate
@@ -341,22 +522,24 @@ CONCLUSION
 
 ---
 
-# 12. Security Considerations
 
-## 12.1 Credential Safety
 
-- session cookies are sensitive credentials
-- store them outside the repository
-- never log or expose cookies in investigation output
+# 13. Security Considerations
+
+## 13.1 Credential Safety
+
+- session cookies and vault handles are sensitive credentials
+- never log or expose passwords, cookies, or vault secret values
 - never commit session files to version control
+- the vault is the only authorized credential store
 
-## 12.2 Test Account Isolation
+## 13.2 Test Account Isolation
 
 - the test account should have no real personal data
 - do not use a personal Instagram account
 - if the test account is compromised, discard it
 
-## 12.3 Legal and Terms of Service
+## 13.3 Legal and Terms of Service
 
 - the user is responsible for complying with Instagram's Terms of Service
 - INSTOSINT is a methodology; the user controls execution
