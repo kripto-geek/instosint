@@ -71,6 +71,7 @@ The goal is **reasoning over relationships**, not indiscriminate data collection
 - A private-account bypass
 - A system that invents missing evidence
 - A relationship-status detector
+- A bundled Instagram API client — data acquisition is delegated to the harness
 
 ---
 
@@ -93,10 +94,21 @@ The goal is **reasoning over relationships**, not indiscriminate data collection
 
 ## Project Structure
 
-```
+```text
 instosint/
 ├── SKILL.md
 ├── README.md
+├── schema/
+│   ├── README.md
+│   └── evidence-bundle.schema.json
+├── examples/
+│   └── synthetic-example/
+│       ├── bundle.json
+│       └── report.md
+├── scripts/
+│   └── validate_bundle.py
+├── tests/
+│   └── test_validate_bundle.py
 └── references/
     ├── instagram-surfaces.md
     ├── evidence-model.md
@@ -104,7 +116,8 @@ instosint/
     ├── investigation-output.md
     ├── image-analysis.md
     ├── graph-model.md
-    └── suggestion-surface-analysis.md
+    ├── suggestion-surface-analysis.md
+    └── browser-access.md
 ```
 
 ### Reference Files
@@ -120,25 +133,101 @@ instosint/
 
 ---
 
-## Architecture
+## Evidence Bundle and Validation
 
-```text
-Instagram Data Access Layer
-  ├── Direct HTTP (raw fetches, web search)
-  └── Browser Automation (optional, authorized test-account session)
-        ↓
-  INSTOSINT
-    → Evidence Graph
-      → Investigation Report
+The prose model is mirrored by a JSON Schema so a graph can be checked instead
+of merely described:
+
+```bash
+# Validate the shipped example (no dependencies required)
+python3 scripts/validate_bundle.py
+
+# Validate a real investigation bundle
+python3 scripts/validate_bundle.py path/to/bundle.json
+
+# Full validation, including JSON Schema constraints
+pip install jsonschema
+python3 scripts/validate_bundle.py examples
+
+# Semantic tests
+python3 -m unittest discover -s tests -v
 ```
 
-INSTOSINT is the reasoning layer. It operates only on publicly observable or otherwise authorized data. Browser automation is an optional data-access layer for observing JS-rendered public surfaces; it is not an access-control bypass.
+The validator checks schema conformance plus the rules a schema cannot express:
+unique and resolvable IDs, evidence-backed edges, hypotheses and conclusions
+that cannot upgrade themselves, lead-score arithmetic, canonical suggestion
+fields, and rejection of placeholders or invented percentages in non-synthetic
+bundles.
+
+Start from `examples/synthetic-example/bundle.json` (and its matching
+`report.md`) when producing a new investigation. The example is entirely
+fictional and marked as such; real investigation artifacts stay out of git.
+
+---
+
+## Data Access and Degraded Mode
+
+INSTOSINT is a reasoning layer. It does not ship a scraper.
+
+| Layer | Status |
+|---|---|
+| Reasoning methodology and references | included |
+| Evidence schema, validator, tests, synthetic example | included |
+| Browser automation (`browser-use` / `browser-harness`) | optional, detected at runtime |
+| Vault-backed authentication (`browser_vault_*`, Hermes-only) | optional, detected at runtime |
+| Direct HTTP / web search | harness-dependent |
+
+`SKILL.md` §0 requires capability detection before any investigation. When the
+browser layer or vault tools are absent, the skill records `DEGRADED` (or
+`FAILED`) and continues in public-only mode. It never asserts that an
+unavailable surface was observed.
+
+A visual observation is recorded as an observation. It does not become an
+identity claim.
+
+---
+
+## Scope and Platform Rules
+
+- Observation is limited to public surfaces plus content the user's authorized
+  session may legitimately see.
+- No follow, like, comment, message, or other interaction with the target.
+- No access-control bypass, credential stuffing, or impersonation.
+- Rate limits and login challenges stop the surface, not the whole
+  investigation: the affected surface is recorded as `RATE_LIMITED`, and the
+  rest of the plan continues.
+- Aggressive means persistent across *allowed* surfaces. It never means
+  evading detection or ignoring a block.
 
 ---
 
 ## Status
 
-INSTOSINT contains the investigation methodology, supporting reference documentation, and an optional browser-access layer. The next engineering step is connecting the reasoning layer to a reliable, authorized Instagram data source so every observation is backed by actual retrieved data.
+Current state:
+
+- **Included** — investigation methodology (`SKILL.md` plus eight references),
+  a JSON Schema for the evidence bundle, a dependency-free validator with 15
+  semantic tests, and a synthetic end-to-end example.
+- **Optional** — the browser-access layer. It requires `browser-use` /
+  `browser-harness`, a Chromium-family browser, and (for authenticated
+  surfaces) a user-provided test account. Vault tooling is specific to the
+  Hermes harness and is treated as an optional capability, not a prerequisite.
+- **Not included** — a bundled Instagram client, a calibrated probability
+  model, and an automated report renderer. Scores are prioritization aids, not
+  probabilities.
+
+Real evidence (`temp/`, `evidence/`) is gitignored on purpose: reports contain
+third-party personal data and screenshots. Publish sanitized or synthetic
+material only.
+
+---
+
+## Requirements
+
+- Python 3.10+ for `scripts/validate_bundle.py` (stdlib only)
+- `jsonschema` for full schema validation (optional)
+- `browser-use`, `browser-harness`, and Chromium for the optional browser layer
+- No network access is required to validate bundles or run the tests
 
 ---
 

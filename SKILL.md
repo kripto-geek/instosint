@@ -10,56 +10,64 @@ It is an investigation methodology, not an access-control bypass mechanism.
 
 The goal is to discover and explain publicly observable connections around an Instagram target, including targets whose own profile content is private or otherwise inaccessible.
 
-INSTOSINT never stops for missing prerequisites. If one path fails, it immediately forces an alternative path. It does not degrade gracefully — it fights through obstacles.
+INSTOSINT never stops for missing prerequisites. If one path fails, it immediately tries an alternative allowed path. It degrades explicitly: every missing capability is recorded as DEGRADED or FAILED, and no unavailable surface is ever reported as observed.
 
 ---
 
 # 0. Skill Bootstrap
 
-## 0.1 Automatic Environment Setup — AGGRESSIVE MODE
+## 0.1 Environment Setup — CAPABILITY DETECTION
 
-Before beginning any investigation, INSTOSINT MUST automatically ensure the environment is ready.
+Before beginning any investigation, INSTOSINT MUST detect what is actually available. Do not assume a capability exists because a tool name appears in this document.
 
-1. Verify `browser-use` is available by checking `which browser-use` or equivalent.
-2. If available, run `browser-use doctor` and attempt to resolve common issues:
-   - If `browser-use doctor --fix-snap` is applicable, run it.
-   - If the daemon is not running, restart it immediately.
-   - If Chrome/Chromium is not running, launch it immediately.
-3. If `browser-use` is not available:
-   - Attempt to install or upgrade it automatically:
-     - Run `browser-use --update -y` if the CLI exists.
-     - Otherwise follow `https://github.com/browser-use/browser-harness/blob/main/install.md` and run the documented install steps.
+1. Detect the browser layer:
+   - `command -v browser-use`
+   - `browser-use --version`
+2. If present, run `browser-use doctor` and resolve what the doctor reports:
+   - Chrome/Chromium not running → start a browser session using the harness helper documented by `browser-use skill` (for example `ensure_real_tab()`), not an invented CLI flag.
+   - Snap Chromium blocking CDP → run `browser-use doctor --fix-snap` and follow its output.
+   - Unhealthy daemon → run `browser-use --reload` so the next call starts a fresh daemon.
+3. If `browser-use` is absent, attempt an upgrade/install only where the harness permits it:
+   - `browser-use --update -y` when the CLI exists.
+   - Otherwise follow `https://github.com/browser-use/browser-harness/blob/main/install.md` and run the documented install steps.
    - If installation fails, record the failure and DO NOT stop. Continue without browser automation.
-4. Run `browser-use skill install` to register the browser-use skill if needed.
-5. After setup, attempt to connect to the browser. If connection fails, force-launch a browser session.
+4. Do not treat skill registration as a CLI subcommand. `browser-use skill` prints the bundled workflow text; registering the skill with the agent harness is a harness-level action. Never run `browser-use skill install` — no such subcommand exists.
+5. Record observed facts for the audit trail: `browser-use doctor --json` and `browser-use --version`.
 
 Record setup result:
-- READY
-- DEGRADED
-- FAILED
+- READY — CLI present, daemon healthy, browser reachable
+- DEGRADED — CLI present but browser, daemon, or another capability is unavailable
+- FAILED — no browser layer at all
 
-## 0.2 Automatic Authentication — AGGRESSIVE MODE
+## 0.2 Authentication — CAPABILITY-GATED
 
-INSTOSINT MUST NOT stop for missing credentials. Instead:
+INSTOSINT MUST NOT stop for missing credentials, and MUST NOT assume vault tooling exists.
 
-1. Call `browser_vault_list`.
-2. If an Instagram login item exists for `https://www.instagram.com`, use it automatically via `browser_vault_fill`.
-3. If no vault item exists:
+1. Detect whether the harness exposes the vault tools:
+   - `browser_vault_list`
+   - `browser_vault_fill`
+   - `browser_vault_save_login`
+   - `browser_vault_enter_code`
+   These are Hermes MCP tools. They are NOT part of the `browser-use` CLI. If they are absent from the current toolset, record `vault_tools: ABSENT` and skip to step 4.
+2. If present, call `browser_vault_list`. If an Instagram login item bound to `https://www.instagram.com` exists, use it automatically via `browser_vault_fill`.
+3. If no vault item exists and the vault tools are present:
    - Open `https://www.instagram.com/accounts/login/` in an isolated browser session named `instosint-<target_username>`.
    - Call `browser_vault_save_login` to prompt the user to save credentials.
    - If saved, fill and authenticate automatically.
-   - If declined, leave the browser open and prompt the user to complete manual login in the browser session.
-   - Wait for the session to become authenticated.
-4. If 2FA is required:
+   - If declined, leave the browser open and prompt the user to complete manual login.
+   - Wait a bounded time for the session to become authenticated; if it does not, continue in public-only mode.
+4. Without vault tooling, open the login page in the isolated session and ask the user to complete login manually. Wait a bounded time. If the session is not authenticated, continue in public-only mode and record `NOT_AUTHENTICATED`.
+5. If 2FA is required:
    - If the vault item has an authenticator key, call `browser_vault_enter_code` automatically.
-   - Otherwise, prompt the user to complete 2FA in their UI and wait.
+   - Otherwise, prompt the user to complete 2FA in their UI and wait a bounded time.
+6. Never type, log, or persist credentials yourself. Never write cookies or session state into an evidence record or artifact.
 
 Record auth state:
 - AUTHENTICATED
 - PENDING_USER_LOGIN
 - NOT_AUTHENTICATED
 
-## 0.3 Investigation Modes — NO SURRENDER
+## 0.3 Investigation Modes — PERSISTENCE WITH RECORDED DEGRADATION
 
 INSTOSINT supports two modes:
 
@@ -67,25 +75,27 @@ INSTOSINT supports two modes:
    - Inspect all observable surfaces
    - Include suggestion surfaces, public posts, comments, images
 
-2. Public-only mode: ONLY if browser automation is completely unavailable after all recovery attempts
+2. Public-only mode: used when no authenticated session exists after the capability checks in 0.1 and 0.2
    - Inspect only surfaces reachable without a logged-in session
    - Record each surface as OBSERVED or NOT_AVAILABLE
    - Do NOT infer that unobserved surfaces are empty
    - ALWAYS attempt browser automation first; public-only is the LAST resort
 
-The mode is determined by available tools and session state. Public-only mode is a failure fallback, not a normal operating mode.
+The mode is determined by detected tools and session state, not by preference. Public-only mode is a recorded fallback, not a normal operating mode.
 
-## 0.4 Skill Entry Point — AGGRESSIVE ENTRY
+Persistence applies only to allowed surfaces. A rate limit, login challenge, or access denial stops that surface: record it as `RATE_LIMITED` or `NOT_AVAILABLE` and continue with the remaining surfaces. Never retry through a block by rotating identity, obfuscating traffic, or evading detection.
+
+## 0.4 Skill Entry Point
 
 When a user invokes INSTOSINT with a target:
 
-1. Run automatic setup with maximum aggression
-2. Run automatic authentication with maximum aggression
-3. State the determined mode and auth state
-4. If setup failed completely, proceed in public-only mode but mark as DEGRADED
+1. Run capability detection (§0.1)
+2. Run capability-gated authentication (§0.2)
+3. State the determined mode (FULL / PUBLIC_ONLY) and auth state (AUTHENTICATED / PENDING_USER_LOGIN / NOT_AUTHENTICATED)
+4. If setup failed completely, proceed in public-only mode and mark setup as FAILED
 5. Begin TARGET_SURFACE_CHECK
-6. NEVER stop for missing prerequisites. ALWAYS proceed with available capabilities.
-7. If browser automation fails, immediately try alternative recovery paths before falling back to public-only.
+6. NEVER stop for missing prerequisites. ALWAYS proceed with the capabilities that are actually available.
+7. If browser automation fails, try the documented recovery paths before falling back to public-only. Do not bypass access controls while doing so.
 
 ---
 
@@ -114,6 +124,21 @@ INVESTIGATION IMPOSSIBLE
 ```
 
 A target may have a private profile while Instagram still exposes publicly observable surrounding signals.
+
+## 1a. Machine-Readable Bundle
+
+Every investigation SHOULD be recorded as an evidence bundle that conforms to
+`schema/evidence-bundle.schema.json`, using `examples/synthetic-example/bundle.json`
+as the starting shape. The bundle is the audit trail; the report is a view of it.
+
+Before delivering a final report:
+
+```bash
+python3 scripts/validate_bundle.py <bundle.json>
+```
+
+Do not present conclusions the bundle cannot support. If the validator rejects
+the bundle, fix the evidence chain — never loosen the check.
 
 ## 2. Private Target ≠ No Investigation
 
@@ -172,25 +197,20 @@ INSTOSINT must NOT:
 
 If the target is private, investigate only what is actually observable.
 
-## 3a. Browser-Based Access Layer — AGGRESSIVE MODE
+## 3a. Browser-Based Access Layer — OPTIONAL
 
-INSTOSINT uses browser automation as the primary data-access layer.
-It is not optional; it is the expected path for Instagram investigation.
+INSTOSINT uses browser automation when the capability is detected (§0.1). It is an optional data-access layer, not a prerequisite: the reasoning methodology, schema, and validator work without it.
 
-### 3a.1 Automatic Authentication Flow — AGGRESSIVE
+### 3a.1 Authentication Flow — CAPABILITY-GATED
 
-INSTOSINT uses this automatic flow with ZERO tolerance for failure:
-
-1. Call `browser_vault_list` and identify an Instagram login item bound to `https://www.instagram.com`
-2. If found, use it to authenticate automatically
-3. If not found, open the Instagram login page in an isolated browser session named `instosint-<target_username>`
-4. Call `browser_vault_save_login` to prompt the user to save credentials
-5. If saved, fill and authenticate automatically
-6. If declined, leave the browser open and prompt the user to complete manual login in the browser
-7. Wait for the session to become authenticated
-8. If 2FA is required, use `browser_vault_enter_code` when possible; otherwise the user completes 2FA in their UI
-9. IF AUTHENTICATION FAILS, RETRY WITH ALTERNATIVE BROWSER SESSION
-10. IF STILL FAILING, FORCE-LAUNCH FRESH BROWSER INSTANCE AND RETRY
+1. Detect whether the Hermes vault tools (`browser_vault_*`) are exposed. They are MCP tools, not part of the `browser-use` CLI.
+2. If present, call `browser_vault_list` and identify an Instagram login item bound to `https://www.instagram.com`.
+3. If found, use it to authenticate automatically via `browser_vault_fill`.
+4. If not found and the vault tools are present, open the Instagram login page in an isolated browser session named `instosint-<target_username>` and call `browser_vault_save_login`.
+5. If saved, fill and authenticate automatically. If declined, leave the browser open and prompt the user for manual login, waiting a bounded time.
+6. Without vault tooling, open the login page and ask the user to log in manually in that session.
+7. If 2FA is required, use `browser_vault_enter_code` when an authenticator key exists; otherwise the user completes 2FA in their UI.
+8. If authentication does not succeed within the bound, continue in PUBLIC_ONLY mode and record `NOT_AUTHENTICATED`. Do NOT loop, rotate sessions to dodge a challenge, or force-launch repeatedly; repeated login attempts trigger platform defenses and are prohibited.
 
 See `references/browser-access.md` for the full browser-access protocol.
 
@@ -220,16 +240,16 @@ Browser automation must NOT be used to:
 - never log or expose vault secret values in investigation output
 - never commit session files or vault state to version control
 - respect Instagram rate limits: 2-5 seconds between page loads, 1 hour between profile observations
-- stop immediately if Instagram blocks or challenges the session
+- stop immediately if Instagram blocks or challenges the session; record the surface as RATE_LIMITED
 - record each observation with timestamp and access method
 - use named isolated browser sessions per investigation
-- NEVER give up after one failure; always try alternative recovery paths
+- NEVER bypass a block. Alternative recovery paths are limited to allowed ones: restarting a crashed browser session, a different permitted surface, or public-only mode. Never start a new session to obtain a result a block denied.
 
 See `references/browser-access.md` for the full browser-access protocol.
 
 ### 3a.5 Session Isolation
 
-Use a named browser session per investigation, for example:
+Use a named browser session per investigation. `browser_exec` is a Hermes harness helper; when it is unavailable, use the equivalent isolated-session facility exposed by the detected browser layer.
 
 ```python
 browser_exec(
@@ -705,7 +725,7 @@ If results appear inconsistent:
 2. Do not merge inconsistent observations.
 3. Note variability in the report.
 4. Increase observation intervals.
-5. ALWAYS retry with alternative browser session if blocked.
+5. If the session is blocked or challenged, record the surface as `RATE_LIMITED`, stop that surface, and continue with the remaining allowed surfaces. Do not rotate sessions to evade the block.
 
 ### Suggestion block changes on reload
 
@@ -716,7 +736,7 @@ If results change between reloads:
 3. Do not merge observations into a single "true" set.
 4. Use delta analysis to identify persistent vs. transient accounts.
 5. Persistent accounts are stronger leads; transient accounts may be algorithmic noise.
-6. RETRY with fresh browser session if results become suspicious.
+6. Re-observe once after an increased interval if results appear unstable. Do not switch sessions to chase a different result.
 
 ### Empty suggestion set
 
@@ -724,7 +744,7 @@ If the block is present but empty:
 1. Record: `SUGGESTION_SET = EMPTY`
 2. This may indicate: new account, low activity, or algorithmic suppression.
 3. Proceed to other surfaces.
-4. ALWAYS retry with alternative session to confirm.
+4. An empty block is not negative evidence about the target's network. Re-observe once at most if budget allows.
 
 ### Single suggestion
 
@@ -1406,17 +1426,17 @@ The investigation must exploit those signals without bypassing privacy controls.
 
 ---
 
-# 36. AGGRESSIVE RECOVERY PROTOCOL
+# 36. RECOVERY PROTOCOL
 
-When any browser automation step fails:
+When a browser automation step fails:
 
-1. RECORD the exact failure mode
-2. IMMEDIATELY try alternative browser session
-3. IF FAILED, force-launch fresh browser instance
-4. IF STILL FAILED, try alternative navigation path
-5. IF STILL FAILED, try alternative data source
-6. ONLY IF ALL PATHS FAIL, mark as NOT_AVAILABLE and pivot
-7. NEVER accept first failure as final
-8. ALWAYS attempt at least 3 different recovery paths before falling back
+1. RECORD the exact failure mode.
+2. Retry the same authorized surface once after an interval, in the same isolated session.
+3. If the surface is genuinely unavailable, try a permitted alternative surface.
+4. If a different data path exists within scope, try it.
+5. ONLY after the allowed paths fail, mark the surface as `NOT_AVAILABLE` and pivot.
+6. NEVER treat the first failure as final, and never treat a block as evidence.
 
-This is non-negotiable. The skill fights through obstacles, it doesn't surrender to them.
+Recovery never includes: rotating identities, evading detection, forcing repeated logins, or retrying through an access-control challenge. Those are prohibitions, not fallbacks.
+
+Persistence is bounded by the investigation budget and by what the platform allows. Stopping on a blocked surface is a correct outcome, not a surrender.

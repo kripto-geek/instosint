@@ -7,11 +7,15 @@ This is an optional data-access layer. INSTOSINT's reasoning methodology
 works without it. It is provided to make the skill executable against
 Instagram's JS-heavy, anti-bot frontend.
 
-The implementation uses:
-- `browser_exec` for navigation, observation, and screenshots
+The implementation uses, when the harness provides them:
+- `browser_exec` for navigation, observation, and screenshots (Hermes helper)
 - `browser_vault_list`, `browser_vault_fill`, `browser_vault_save_login`,
   and `browser_vault_enter_code` for credential access via the Hermes vault
 - Named browser sessions to isolate investigation state
+
+None of these are bundled with INSTOSINT. Detect them at runtime (SKILL.md 0.1
+and 0.2). When they are absent, the investigation continues in public-only mode
+with the absence recorded.
 
 ---
 
@@ -46,7 +50,7 @@ Use browser access when:
 Do NOT use browser access when:
 - the target is public and raw HTTP already works
 - the investigation can proceed without it
-- the user has not provided authorized session credentials
+- the surface is behind a login wall the session is not authorized to pass; record that surface as NOT_AVAILABLE and continue with the remaining public surfaces
 
 ---
 
@@ -69,22 +73,24 @@ The test account should be:
 
 ## 3.2 Session Credentials via Vault
 
-INSTOSINT requires one of:
+When the Hermes vault tools are available, INSTOSINT uses one of:
 - a vault login item bound to `https://www.instagram.com` containing the
   test account identifier and password
 - credentials saved through the Hermes vault UI
 
-The user is responsible for:
+When the vault tools are not available, the user authenticates manually in an
+isolated browser session. Either way, the user is responsible for:
 - creating the test account
 - providing credentials
 - understanding Instagram's Terms of Service
 
 INSTOSINT does not create, manage, or verify accounts.
 
-The vault is the only supported credential store for this skill.
-Session cookies are sensitive credentials and must not be committed to
-version control, logged in investigation output, or stored outside the
-Hermes vault/session mechanism.
+The vault is the only supported programmatic credential store. Manual login in
+an isolated harness session is the fallback. Credentials are never typed by the
+agent, and session cookies are sensitive credentials that must not be committed
+to version control, logged in investigation output, or stored outside the
+harness session mechanism.
 
 ---
 
@@ -95,16 +101,20 @@ Hermes vault/session mechanism.
 ## 4.1 Credential Discovery
 
 ```text
-1. Call browser_vault_list
-2. Identify an Instagram login item bound to https://www.instagram.com
-3. If found, record the handle and identifier/username
-4. If not found, stop and request user action:
+1. Detect whether browser_vault_* tools are exposed.
+2. If absent: record vault_tools: ABSENT, use manual login in an isolated
+   session (4.2a), then continue.
+3. If present: call browser_vault_list.
+4. Identify an Instagram login item bound to https://www.instagram.com.
+5. If found, record the handle and identifier/username.
+6. If not found, request user action:
    - save credentials via browser_vault_save_login, or
    - add the item through the Hermes vault UI
+7. If the user declines, continue in public-only mode.
 ```
 
-Do not continue browser automation without an authorized vault-backed login
-item for Instagram.
+Do not stop the investigation because a vault item is missing, and do not
+repeatedly re-trigger a login challenge.
 
 ## 4.2 Login Procedure
 
@@ -121,6 +131,21 @@ item for Instagram.
    - otherwise the user completes 2FA in their UI
 7. Validate session state before proceeding
 ```
+
+## 4.2a Manual Login Fallback
+
+When vault tooling is unavailable:
+
+```text
+1. Open the login page in an isolated session.
+2. Ask the user to complete login and 2FA in that session.
+3. Wait a bounded time.
+4. Validate session state.
+5. If unauthenticated, continue in public-only mode and record
+   NOT_AUTHENTICATED.
+```
+
+Never request, type, log, or store the password yourself.
 
 ## 4.3 Session Validation
 
@@ -346,14 +371,26 @@ They are not evidence of what the content means.
 ## 8.1 Session Loading via Vault
 
 ```text
-1. Call browser_vault_list
-2. Identify Instagram login handle
-3. If not found, stop and request user action
-4. Navigate to Instagram login page
-5. Fill username manually
-6. Fill password via browser_vault_fill
-7. Submit and wait for redirect
-8. Validate session state
+1. Detect whether browser_vault_* tools are exposed.
+2. If absent, record vault_tools: ABSENT and use manual login (8.1a).
+3. Call browser_vault_list and identify the Instagram login handle.
+4. If not found, request user action (save the login item) and continue in
+   public-only mode if the user declines.
+5. Navigate to the Instagram login page.
+6. Fill the username field from the vault item.
+7. Fill the password via browser_vault_fill.
+8. Submit and wait for redirect.
+9. Validate session state.
+```
+
+## 8.1a Manual Login Fallback
+
+```text
+1. Open the login page in an isolated session.
+2. Ask the user to log in and complete 2FA in that session.
+3. Wait a bounded time.
+4. Validate session state.
+5. If unauthenticated, record NOT_AUTHENTICATED and continue in public-only mode.
 ```
 
 ## 8.2 Session Validation
