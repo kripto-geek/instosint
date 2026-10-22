@@ -1,0 +1,878 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/kripto-geek/instosint/schema/evidence-bundle.schema.json",
+  "title": "INSTOSINT Evidence Bundle",
+  "description": "Machine-readable form of the INSTOSINT evidence model: nodes, sources, observations, relationships, hypotheses, leads, unknowns, and conclusions. Field semantics are defined in references/evidence-model.md, references/graph-model.md, references/suggestion-surface-analysis.md, and references/investigation-output.md.",
+  "type": "object",
+  "required": [
+    "schema_version",
+    "investigation",
+    "sources"
+  ],
+  "additionalProperties": false,
+  "properties": {
+    "schema_version": {
+      "const": "1.0.0"
+    },
+    "synthetic": {
+      "type": "boolean",
+      "default": false,
+      "description": "True only for clearly marked fictional examples. Placeholder values are permitted here and nowhere else."
+    },
+    "investigation": {
+      "$ref": "#/$defs/investigation"
+    },
+    "nodes": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/node"
+      },
+      "default": []
+    },
+    "sources": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/source"
+      }
+    },
+    "observations": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/observation"
+      },
+      "default": []
+    },
+    "relationships": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/relationship"
+      },
+      "default": []
+    },
+    "hypotheses": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/hypothesis"
+      },
+      "default": []
+    },
+    "leads": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/lead"
+      },
+      "default": []
+    },
+    "unknowns": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/unknown"
+      },
+      "default": []
+    },
+    "conclusions": {
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/conclusion"
+      },
+      "default": []
+    }
+  },
+  "$defs": {
+    "id": {
+      "type": "string",
+      "pattern": "^[A-Z]{2,6}-[0-9]{3,}$"
+    },
+    "timestamp": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "handle": {
+      "type": "string",
+      "pattern": "^@?[A-Za-z0-9._]{1,30}$"
+    },
+    "entityRef": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Either a node ID (ACCOUNT-001) or an observed handle (@account). Node IDs must resolve against nodes[]; the validator enforces this."
+    },
+    "investigation": {
+      "type": "object",
+      "required": [
+        "id",
+        "target",
+        "started_at",
+        "mode",
+        "auth_state",
+        "setup_state",
+        "final_state"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^INV-[0-9A-Za-z._-]+$"
+        },
+        "target": {
+          "type": "object",
+          "required": [
+            "username"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "username": {
+              "$ref": "#/$defs/handle"
+            },
+            "user_id": {
+              "type": "string"
+            },
+            "profile_access": {
+              "enum": [
+                "PUBLIC",
+                "PRIVATE",
+                "UNKNOWN"
+              ]
+            }
+          }
+        },
+        "started_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "ended_at": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/timestamp"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "mode": {
+          "enum": [
+            "FULL",
+            "PUBLIC_ONLY"
+          ],
+          "description": "Per SKILL.md 0.3. PUBLIC_ONLY is a degraded fallback, not a normal mode."
+        },
+        "auth_state": {
+          "enum": [
+            "AUTHENTICATED",
+            "PENDING_USER_LOGIN",
+            "NOT_AUTHENTICATED"
+          ]
+        },
+        "setup_state": {
+          "enum": [
+            "READY",
+            "DEGRADED",
+            "FAILED"
+          ]
+        },
+        "final_state": {
+          "enum": [
+            "IN_PROGRESS",
+            "STOPPED_RESOLVED",
+            "STOPPED_BUDGET",
+            "STOPPED_EXHAUSTED",
+            "BLOCKED_ACCESS",
+            "INSUFFICIENT_EVIDENCE"
+          ]
+        },
+        "session": {
+          "type": "string",
+          "description": "Isolated browser session name. Never include credentials or cookies here."
+        },
+        "capabilities": {
+          "type": "object",
+          "additionalProperties": false,
+          "description": "Detected runtime capabilities, recorded before the investigation (SKILL.md 0.1-0.2).",
+          "properties": {
+            "browser_layer": {
+              "enum": [
+                "READY",
+                "DEGRADED",
+                "FAILED"
+              ]
+            },
+            "vault_tools": {
+              "enum": [
+                "PRESENT",
+                "ABSENT"
+              ]
+            }
+          }
+        },
+        "limitations": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        }
+      }
+    },
+    "node": {
+      "type": "object",
+      "required": [
+        "id",
+        "type"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^(ACCOUNT|POST|COMMENT|IMAGE|VIDEO|HASHTAG|PLACE|EVENT|OBJECT|TEXT_FRAGMENT|EXTERNAL_RESOURCE)-[0-9]{3,}$"
+        },
+        "type": {
+          "enum": [
+            "ACCOUNT",
+            "POST",
+            "COMMENT",
+            "IMAGE",
+            "VIDEO",
+            "HASHTAG",
+            "PLACE",
+            "EVENT",
+            "OBJECT",
+            "TEXT_FRAGMENT",
+            "EXTERNAL_RESOURCE"
+          ]
+        },
+        "label": {
+          "type": "string",
+          "description": "Display name or human-readable label as observed."
+        },
+        "handle": {
+          "$ref": "#/$defs/handle"
+        },
+        "source": {
+          "$ref": "#/$defs/id"
+        },
+        "attributes": {
+          "type": "object",
+          "description": "Observed attributes only. Never store a guessed real-world identity here.",
+          "additionalProperties": true
+        }
+      }
+    },
+    "source": {
+      "type": "object",
+      "required": [
+        "id",
+        "type",
+        "access_status"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "$ref": "#/$defs/id"
+        },
+        "type": {
+          "enum": [
+            "instagram_profile",
+            "instagram_post",
+            "instagram_comment",
+            "instagram_followers_surface",
+            "instagram_following_surface",
+            "instagram_tagged_surface",
+            "instagram_suggestion_surface",
+            "instagram_search_surface",
+            "public_image",
+            "browser_session",
+            "other_authorized"
+          ]
+        },
+        "target": {
+          "$ref": "#/$defs/handle"
+        },
+        "surface": {
+          "type": "string"
+        },
+        "retrieved_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "access_status": {
+          "enum": [
+            "AVAILABLE",
+            "NOT_AVAILABLE",
+            "RATE_LIMITED",
+            "AUTH_REQUIRED",
+            "ERROR"
+          ]
+        },
+        "artifact": {
+          "type": [
+            "string",
+            "null"
+          ],
+          "description": "Relative path to a screenshot or capture. Must not contain credentials, cookies, or private content."
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    },
+    "observation": {
+      "type": "object",
+      "required": [
+        "id",
+        "source",
+        "subject",
+        "observation",
+        "type",
+        "reliability"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^OBS-[0-9]{3,}$"
+        },
+        "source": {
+          "$ref": "#/$defs/id"
+        },
+        "subject": {
+          "$ref": "#/$defs/entityRef"
+        },
+        "object": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/entityRef"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "relationship": {
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "observation": {
+          "type": "string",
+          "minLength": 1
+        },
+        "type": {
+          "enum": [
+            "DIRECT_OBSERVATION",
+            "DERIVED_OBSERVATION",
+            "VISUAL_OBSERVATION",
+            "TEXTUAL_OBSERVATION",
+            "INFERENCE",
+            "HYPOTHESIS",
+            "DATA_AVAILABILITY",
+            "SUGGESTION_OBSERVATION",
+            "RECURRING_SUGGESTION_SIGNAL",
+            "BIDIRECTIONAL_SUGGESTION_SIGNAL",
+            "SHARED_SUGGESTION_FINGERPRINT",
+            "COMMUNITY_CANDIDATE"
+          ]
+        },
+        "reliability": {
+          "enum": [
+            "LOW",
+            "MODERATE",
+            "HIGH",
+            "UNKNOWN"
+          ]
+        },
+        "status": {
+          "enum": [
+            "OBSERVED",
+            "DERIVED",
+            "INFERRED",
+            "HYPOTHETICAL",
+            "CONTRADICTED",
+            "UNRESOLVED",
+            "INVALIDATED"
+          ]
+        },
+        "observed_at": {
+          "$ref": "#/$defs/timestamp"
+        },
+        "independence_group": {
+          "type": "string",
+          "description": "Correlated observations share a group and must not be counted as independent corroboration."
+        },
+        "surface": {
+          "type": "string"
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        },
+        "suggestion": {
+          "type": "object",
+          "required": [
+            "target_account",
+            "position",
+            "mutual_count",
+            "context_label",
+            "timestamp"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "target_account": {
+              "$ref": "#/$defs/handle"
+            },
+            "position": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 1
+                },
+                {
+                  "const": "UNKNOWN"
+                }
+              ]
+            },
+            "mutual_count": {
+              "anyOf": [
+                {
+                  "type": "integer",
+                  "minimum": 0
+                },
+                {
+                  "const": "NOT_VISIBLE"
+                }
+              ]
+            },
+            "context_label": {
+              "type": [
+                "string",
+                "null"
+              ],
+              "description": "Exact label text if present, otherwise null. Never paraphrase."
+            },
+            "timestamp": {
+              "$ref": "#/$defs/timestamp"
+            },
+            "session": {
+              "type": "string"
+            },
+            "sweep": {
+              "type": "string",
+              "description": "Investigator-assigned sweep label, e.g. A or B."
+            }
+          }
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "type": {
+                "const": "SUGGESTION_OBSERVATION"
+              }
+            },
+            "required": [
+              "type"
+            ]
+          },
+          "then": {
+            "required": [
+              "suggestion",
+              "observed_at"
+            ]
+          }
+        }
+      ]
+    },
+    "relationship": {
+      "type": "object",
+      "required": [
+        "id",
+        "subject",
+        "relationship",
+        "object",
+        "strength"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^REL-[0-9]{3,}$"
+        },
+        "subject": {
+          "$ref": "#/$defs/entityRef"
+        },
+        "relationship": {
+          "enum": [
+            "FOLLOWS",
+            "FOLLOWED_BY",
+            "MUTUAL_CONNECTION",
+            "LIKES",
+            "COMMENTS_ON",
+            "MENTIONS",
+            "TAGS",
+            "POSTED",
+            "AUTHORED",
+            "APPEARS_IN",
+            "REFERENCES",
+            "LOCATED_AT",
+            "USES_HASHTAG",
+            "SHARES_CONTEXT",
+            "NETWORK_OVERLAP",
+            "TEMPORAL_OVERLAP",
+            "POSSIBLE_VISUAL_MATCH",
+            "LINKS_TO",
+            "SUGGESTED",
+            "RECURRING_SUGGESTION",
+            "BIDIRECTIONAL_SUGGESTION",
+            "SHARED_SUGGESTION_FINGERPRINT",
+            "COMMUNITY_CANDIDATE",
+            "SUGGESTION_CLUSTER",
+            "POSSIBLE_SAME_ENTITY",
+            "TEMPORALLY_PRECEDES",
+            "SHARED_NETWORK_CONNECTION"
+          ]
+        },
+        "object": {
+          "$ref": "#/$defs/entityRef"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "default": []
+        },
+        "strength": {
+          "enum": [
+            "UNKNOWN",
+            "WEAK",
+            "MODERATE",
+            "STRONG"
+          ]
+        },
+        "hypothetical": {
+          "type": "boolean",
+          "default": false
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "not": {
+              "properties": {
+                "hypothetical": {
+                  "const": true
+                }
+              },
+              "required": [
+                "hypothetical"
+              ]
+            }
+          },
+          "then": {
+            "properties": {
+              "evidence": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "hypothesis": {
+      "type": "object",
+      "required": [
+        "id",
+        "statement",
+        "status",
+        "confidence"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^HYP-[0-9]{3,}$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "POSSIBLE",
+            "INVESTIGATING",
+            "SUPPORTED",
+            "STRONGLY_SUPPORTED",
+            "CONTRADICTED",
+            "UNRESOLVED"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "LOW",
+            "MODERATE",
+            "HIGH",
+            "VERY_HIGH"
+          ]
+        },
+        "supporting": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "default": []
+        },
+        "contradicting": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "default": []
+        },
+        "alternatives": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "default": []
+        },
+        "notes": {
+          "type": "string"
+        }
+      },
+      "allOf": [
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "enum": [
+                  "SUPPORTED",
+                  "STRONGLY_SUPPORTED"
+                ]
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "supporting": {
+                "minItems": 1
+              }
+            }
+          }
+        },
+        {
+          "if": {
+            "properties": {
+              "status": {
+                "const": "CONTRADICTED"
+              }
+            },
+            "required": [
+              "status"
+            ]
+          },
+          "then": {
+            "properties": {
+              "contradicting": {
+                "minItems": 1
+              }
+            }
+          }
+        }
+      ]
+    },
+    "lead": {
+      "type": "object",
+      "required": [
+        "id",
+        "account",
+        "base_signal",
+        "score",
+        "quality",
+        "threshold_met"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^LEAD-[0-9]{3,}$"
+        },
+        "account": {
+          "$ref": "#/$defs/handle"
+        },
+        "base_signal": {
+          "type": "string"
+        },
+        "score": {
+          "type": "object",
+          "required": [
+            "recurrence",
+            "mutual_count",
+            "persistence",
+            "multi_surface",
+            "bidirectional",
+            "corroboration",
+            "total"
+          ],
+          "additionalProperties": false,
+          "properties": {
+            "recurrence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "mutual_count": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "persistence": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "multi_surface": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 3
+            },
+            "bidirectional": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1
+            },
+            "corroboration": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 4
+            },
+            "total": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 17
+            }
+          }
+        },
+        "quality": {
+          "enum": [
+            "WEAK",
+            "MODERATE",
+            "STRONG",
+            "HIGH_VALUE"
+          ]
+        },
+        "threshold_met": {
+          "type": "boolean",
+          "description": "True when total >= 6, per references/suggestion-surface-analysis.md 16.4."
+        },
+        "investigated": {
+          "type": "boolean",
+          "default": false
+        },
+        "reason": {
+          "type": "string"
+        },
+        "evidence": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "default": []
+        }
+      }
+    },
+    "unknown": {
+      "type": "object",
+      "required": [
+        "id",
+        "surface",
+        "status",
+        "reason"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^UNK-[0-9]{3,}$"
+        },
+        "surface": {
+          "type": "string"
+        },
+        "status": {
+          "enum": [
+            "NOT_AVAILABLE",
+            "NOT_OBSERVED",
+            "RATE_LIMITED",
+            "AMBIGUOUS"
+          ]
+        },
+        "reason": {
+          "type": "string"
+        },
+        "related": {
+          "type": "array",
+          "items": {
+            "$ref": "#/$defs/id"
+          }
+        }
+      }
+    },
+    "conclusion": {
+      "type": "object",
+      "required": [
+        "id",
+        "statement",
+        "status",
+        "confidence",
+        "hypotheses"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "id": {
+          "type": "string",
+          "pattern": "^CON-[0-9]{3,}$"
+        },
+        "statement": {
+          "type": "string",
+          "minLength": 1
+        },
+        "status": {
+          "enum": [
+            "SUPPORTED",
+            "PARTIALLY_SUPPORTED",
+            "UNRESOLVED",
+            "CONTRADICTED"
+          ]
+        },
+        "confidence": {
+          "enum": [
+            "LOW",
+            "MODERATE",
+            "HIGH",
+            "VERY_HIGH"
+          ]
+        },
+        "hypotheses": {
+          "type": "array",
+          "minItems": 1,
+          "items": {
+            "$ref": "#/$defs/id"
+          },
+          "description": "Every conclusion resolves down to at least one hypothesis."
+        },
+        "notes": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}

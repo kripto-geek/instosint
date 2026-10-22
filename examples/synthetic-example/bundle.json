@@ -1,0 +1,782 @@
+{
+  "schema_version": "1.0.0",
+  "synthetic": true,
+  "investigation": {
+    "id": "INV-SYNTHETIC-001",
+    "target": {
+      "username": "@demo.target",
+      "user_id": "000000000",
+      "profile_access": "PRIVATE"
+    },
+    "started_at": "2026-01-15T10:00:00Z",
+    "ended_at": "2026-01-15T10:22:00Z",
+    "mode": "FULL",
+    "auth_state": "AUTHENTICATED",
+    "setup_state": "READY",
+    "final_state": "STOPPED_BUDGET",
+    "session": "instosint-demo.target",
+    "capabilities": {
+      "browser_layer": "READY",
+      "vault_tools": "PRESENT"
+    },
+    "limitations": [
+      "Synthetic bundle. Every handle, count, and timestamp below is invented.",
+      "Two suggestion sweeps 40 seconds apart are weak recurrence evidence.",
+      "Follower and following lists of the private target were not observable."
+    ]
+  },
+  "nodes": [
+    {
+      "id": "ACCOUNT-001",
+      "type": "ACCOUNT",
+      "label": "Demo Target",
+      "handle": "@demo.target",
+      "source": "SRC-001"
+    },
+    {
+      "id": "ACCOUNT-002",
+      "type": "ACCOUNT",
+      "label": "Demo Lead A",
+      "handle": "@demo.lead_a",
+      "source": "SRC-002"
+    },
+    {
+      "id": "ACCOUNT-003",
+      "type": "ACCOUNT",
+      "label": "Demo Lead B",
+      "handle": "@demo.lead_b",
+      "source": "SRC-005"
+    },
+    {
+      "id": "ACCOUNT-004",
+      "type": "ACCOUNT",
+      "label": "Demo Lead C",
+      "handle": "@demo.lead_c",
+      "source": "SRC-002"
+    },
+    {
+      "id": "ACCOUNT-005",
+      "type": "ACCOUNT",
+      "label": "Demo Lead D",
+      "handle": "@demo.lead_d",
+      "source": "SRC-002"
+    }
+  ],
+  "sources": [
+    {
+      "id": "SRC-001",
+      "type": "instagram_profile",
+      "target": "@demo.target",
+      "surface": "profile header",
+      "retrieved_at": "2026-01-15T10:01:00Z",
+      "access_status": "AVAILABLE",
+      "artifact": "artifacts/obs-001-profile.png"
+    },
+    {
+      "id": "SRC-002",
+      "type": "instagram_suggestion_surface",
+      "target": "@demo.target",
+      "surface": "profile-page suggestion block, sweep A",
+      "retrieved_at": "2026-01-15T10:05:00Z",
+      "access_status": "AVAILABLE",
+      "artifact": "artifacts/obs-002-sweep-a.png"
+    },
+    {
+      "id": "SRC-003",
+      "type": "instagram_suggestion_surface",
+      "target": "@demo.target",
+      "surface": "profile-page suggestion block, sweep B",
+      "retrieved_at": "2026-01-15T10:05:40Z",
+      "access_status": "AVAILABLE",
+      "artifact": "artifacts/obs-006-sweep-b.png"
+    },
+    {
+      "id": "SRC-004",
+      "type": "instagram_suggestion_surface",
+      "target": "@demo.lead_a",
+      "surface": "lead_a profile suggestion block",
+      "retrieved_at": "2026-01-15T10:12:00Z",
+      "access_status": "AVAILABLE",
+      "artifact": "artifacts/obs-012-lead-a-surface.png"
+    },
+    {
+      "id": "SRC-005",
+      "type": "instagram_followers_surface",
+      "target": "@demo.lead_b",
+      "surface": "public followers list",
+      "retrieved_at": "2026-01-15T10:15:00Z",
+      "access_status": "AVAILABLE",
+      "artifact": "artifacts/obs-014-lead-b-followers.png"
+    },
+    {
+      "id": "SRC-006",
+      "type": "instagram_search_surface",
+      "target": "@demo.target",
+      "surface": "topsearch handle query",
+      "retrieved_at": "2026-01-15T10:18:00Z",
+      "access_status": "AVAILABLE",
+      "artifact": "artifacts/obs-017-search.png"
+    },
+    {
+      "id": "SRC-007",
+      "type": "instagram_profile",
+      "target": "@demo.target",
+      "surface": "web_profile_info API",
+      "retrieved_at": "2026-01-15T10:20:00Z",
+      "access_status": "RATE_LIMITED"
+    }
+  ],
+  "observations": [
+    {
+      "id": "OBS-001",
+      "source": "SRC-001",
+      "subject": "ACCOUNT-001",
+      "object": null,
+      "observation": "@demo.target profile shows 12 posts, 40 followers, 35 following, and a private-account notice.",
+      "type": "DIRECT_OBSERVATION",
+      "reliability": "HIGH",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:01:00Z",
+      "independence_group": "PROFILE-HEADER",
+      "surface": "profile header"
+    },
+    {
+      "id": "OBS-002",
+      "source": "SRC-002",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-002",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_a appeared in position 1 of the profile-page suggestion block for @demo.target.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:00Z",
+      "independence_group": "SWEEP-A",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 1,
+        "mutual_count": 4,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:00Z",
+        "session": "instosint-demo.target",
+        "sweep": "A"
+      }
+    },
+    {
+      "id": "OBS-003",
+      "source": "SRC-002",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-003",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_b appeared in position 2 of the profile-page suggestion block for @demo.target.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:00Z",
+      "independence_group": "SWEEP-A",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 2,
+        "mutual_count": "NOT_VISIBLE",
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:00Z",
+        "session": "instosint-demo.target",
+        "sweep": "A"
+      }
+    },
+    {
+      "id": "OBS-004",
+      "source": "SRC-002",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-004",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_c appeared in position 3 of the profile-page suggestion block for @demo.target.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:00Z",
+      "independence_group": "SWEEP-A",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 3,
+        "mutual_count": 1,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:00Z",
+        "session": "instosint-demo.target",
+        "sweep": "A"
+      }
+    },
+    {
+      "id": "OBS-005",
+      "source": "SRC-002",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-005",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_d appeared in position 4 of the profile-page suggestion block for @demo.target.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:00Z",
+      "independence_group": "SWEEP-A",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 4,
+        "mutual_count": 0,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:00Z",
+        "session": "instosint-demo.target",
+        "sweep": "A"
+      }
+    },
+    {
+      "id": "OBS-006",
+      "source": "SRC-003",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-002",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_a appeared in position 1 of the profile-page suggestion block for @demo.target on the second sweep.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:40Z",
+      "independence_group": "SWEEP-B",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 1,
+        "mutual_count": 4,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:40Z",
+        "session": "instosint-demo.target",
+        "sweep": "B"
+      }
+    },
+    {
+      "id": "OBS-007",
+      "source": "SRC-003",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-003",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_b appeared in position 2 of the profile-page suggestion block for @demo.target on the second sweep.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:40Z",
+      "independence_group": "SWEEP-B",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 2,
+        "mutual_count": "NOT_VISIBLE",
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:40Z",
+        "session": "instosint-demo.target",
+        "sweep": "B"
+      }
+    },
+    {
+      "id": "OBS-008",
+      "source": "SRC-003",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-004",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_c appeared in position 3 of the profile-page suggestion block for @demo.target on the second sweep.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:05:40Z",
+      "independence_group": "SWEEP-B",
+      "surface": "profile-page suggestion block",
+      "suggestion": {
+        "target_account": "@demo.target",
+        "position": 3,
+        "mutual_count": 2,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:05:40Z",
+        "session": "instosint-demo.target",
+        "sweep": "B"
+      }
+    },
+    {
+      "id": "OBS-009",
+      "source": "SRC-003",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-002",
+      "observation": "@demo.lead_a appeared in 2 of 2 observed suggestion sweeps for @demo.target.",
+      "type": "RECURRING_SUGGESTION_SIGNAL",
+      "reliability": "MODERATE",
+      "status": "DERIVED",
+      "observed_at": "2026-01-15T10:05:40Z",
+      "independence_group": "SWEEP-COMPARISON",
+      "surface": "profile-page suggestion block",
+      "related": [
+        "OBS-002",
+        "OBS-006"
+      ]
+    },
+    {
+      "id": "OBS-010",
+      "source": "SRC-003",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-003",
+      "observation": "@demo.lead_b appeared in 2 of 2 observed suggestion sweeps for @demo.target.",
+      "type": "RECURRING_SUGGESTION_SIGNAL",
+      "reliability": "MODERATE",
+      "status": "DERIVED",
+      "observed_at": "2026-01-15T10:05:40Z",
+      "independence_group": "SWEEP-COMPARISON",
+      "surface": "profile-page suggestion block",
+      "related": [
+        "OBS-003",
+        "OBS-007"
+      ]
+    },
+    {
+      "id": "OBS-011",
+      "source": "SRC-003",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-004",
+      "observation": "@demo.lead_c appeared in 2 of 2 observed suggestion sweeps for @demo.target.",
+      "type": "RECURRING_SUGGESTION_SIGNAL",
+      "reliability": "MODERATE",
+      "status": "DERIVED",
+      "observed_at": "2026-01-15T10:05:40Z",
+      "independence_group": "SWEEP-COMPARISON",
+      "surface": "profile-page suggestion block",
+      "related": [
+        "OBS-004",
+        "OBS-008"
+      ]
+    },
+    {
+      "id": "OBS-012",
+      "source": "SRC-004",
+      "subject": "ACCOUNT-002",
+      "object": "ACCOUNT-001",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.target appeared in position 1 of @demo.lead_a's profile-page suggestion block.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:12:00Z",
+      "independence_group": "LEAD-A-SURFACE",
+      "surface": "lead_a profile suggestion block",
+      "suggestion": {
+        "target_account": "@demo.lead_a",
+        "position": 1,
+        "mutual_count": 4,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:12:00Z",
+        "session": "instosint-demo.target"
+      }
+    },
+    {
+      "id": "OBS-013",
+      "source": "SRC-004",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-002",
+      "observation": "Bidirectional suggestion exposure observed: @demo.lead_a appears in @demo.target's block and @demo.target appears in @demo.lead_a's block.",
+      "type": "BIDIRECTIONAL_SUGGESTION_SIGNAL",
+      "reliability": "MODERATE",
+      "status": "DERIVED",
+      "observed_at": "2026-01-15T10:12:00Z",
+      "independence_group": "TWO-SURFACE-BIDIRECTIONAL",
+      "surface": "two suggestion surfaces",
+      "related": [
+        "OBS-002",
+        "OBS-012"
+      ]
+    },
+    {
+      "id": "OBS-014",
+      "source": "SRC-005",
+      "subject": "ACCOUNT-001",
+      "object": "ACCOUNT-003",
+      "relationship": "FOLLOWS",
+      "observation": "@demo.target appears in @demo.lead_b's publicly visible followers list.",
+      "type": "DIRECT_OBSERVATION",
+      "reliability": "HIGH",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:15:00Z",
+      "independence_group": "LEAD-B-FOLLOWERS",
+      "surface": "public followers list"
+    },
+    {
+      "id": "OBS-015",
+      "source": "SRC-004",
+      "subject": "ACCOUNT-002",
+      "object": "ACCOUNT-003",
+      "relationship": "SUGGESTED",
+      "observation": "@demo.lead_b appeared in position 3 of @demo.lead_a's profile-page suggestion block.",
+      "type": "SUGGESTION_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:12:00Z",
+      "independence_group": "LEAD-A-SURFACE",
+      "surface": "lead_a profile suggestion block",
+      "suggestion": {
+        "target_account": "@demo.lead_a",
+        "position": 3,
+        "mutual_count": 2,
+        "context_label": "Suggested for you",
+        "timestamp": "2026-01-15T10:12:00Z",
+        "session": "instosint-demo.target"
+      }
+    },
+    {
+      "id": "OBS-016",
+      "source": "SRC-004",
+      "subject": "ACCOUNT-003",
+      "object": null,
+      "observation": "@demo.lead_b appeared in the suggestion sets of two investigated targets (@demo.target and @demo.lead_a).",
+      "type": "COMMUNITY_CANDIDATE",
+      "reliability": "MODERATE",
+      "status": "DERIVED",
+      "observed_at": "2026-01-15T10:12:00Z",
+      "independence_group": "COMMUNITY-LEAD-B",
+      "surface": "two suggestion surfaces",
+      "related": [
+        "OBS-003",
+        "OBS-007",
+        "OBS-015"
+      ]
+    },
+    {
+      "id": "OBS-017",
+      "source": "SRC-006",
+      "subject": "ACCOUNT-001",
+      "object": null,
+      "observation": "Handle search returned two accounts with near-identical handles; neither was confirmed to be the same entity as @demo.target.",
+      "type": "DIRECT_OBSERVATION",
+      "reliability": "MODERATE",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:18:00Z",
+      "independence_group": "SEARCH-NEAR-MISS",
+      "surface": "topsearch handle query"
+    },
+    {
+      "id": "OBS-018",
+      "source": "SRC-007",
+      "subject": "ACCOUNT-001",
+      "object": null,
+      "observation": "The web_profile_info request returned HTTP 429, so the profile external_url could not be observed.",
+      "type": "DATA_AVAILABILITY",
+      "reliability": "HIGH",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:20:00Z",
+      "independence_group": "API-RATE-LIMIT",
+      "surface": "web_profile_info API"
+    },
+    {
+      "id": "OBS-019",
+      "source": "SRC-001",
+      "subject": "ACCOUNT-001",
+      "object": null,
+      "observation": "The target's follower and following lists were not observable because the account is private and not followed by the observer account.",
+      "type": "DATA_AVAILABILITY",
+      "reliability": "HIGH",
+      "status": "OBSERVED",
+      "observed_at": "2026-01-15T10:01:00Z",
+      "independence_group": "PROFILE-HEADER",
+      "surface": "profile header"
+    }
+  ],
+  "relationships": [
+    {
+      "id": "REL-001",
+      "subject": "ACCOUNT-001",
+      "relationship": "FOLLOWS",
+      "object": "ACCOUNT-003",
+      "evidence": [
+        "OBS-014"
+      ],
+      "strength": "STRONG"
+    },
+    {
+      "id": "REL-002",
+      "subject": "ACCOUNT-001",
+      "relationship": "SUGGESTED",
+      "object": "ACCOUNT-002",
+      "evidence": [
+        "OBS-002",
+        "OBS-006"
+      ],
+      "strength": "MODERATE"
+    },
+    {
+      "id": "REL-003",
+      "subject": "ACCOUNT-001",
+      "relationship": "SUGGESTED",
+      "object": "ACCOUNT-003",
+      "evidence": [
+        "OBS-003",
+        "OBS-007"
+      ],
+      "strength": "MODERATE"
+    },
+    {
+      "id": "REL-004",
+      "subject": "ACCOUNT-001",
+      "relationship": "SUGGESTED",
+      "object": "ACCOUNT-004",
+      "evidence": [
+        "OBS-004",
+        "OBS-008"
+      ],
+      "strength": "MODERATE"
+    },
+    {
+      "id": "REL-005",
+      "subject": "ACCOUNT-001",
+      "relationship": "SUGGESTED",
+      "object": "ACCOUNT-005",
+      "evidence": [
+        "OBS-005"
+      ],
+      "strength": "WEAK"
+    },
+    {
+      "id": "REL-006",
+      "subject": "ACCOUNT-002",
+      "relationship": "SUGGESTED",
+      "object": "ACCOUNT-001",
+      "evidence": [
+        "OBS-012"
+      ],
+      "strength": "MODERATE"
+    },
+    {
+      "id": "REL-007",
+      "subject": "ACCOUNT-001",
+      "relationship": "BIDIRECTIONAL_SUGGESTION",
+      "object": "ACCOUNT-002",
+      "evidence": [
+        "OBS-013"
+      ],
+      "strength": "MODERATE"
+    },
+    {
+      "id": "REL-008",
+      "subject": "ACCOUNT-003",
+      "relationship": "NETWORK_OVERLAP",
+      "object": "ACCOUNT-002",
+      "evidence": [
+        "OBS-015",
+        "OBS-016"
+      ],
+      "strength": "WEAK"
+    }
+  ],
+  "hypotheses": [
+    {
+      "id": "HYP-001",
+      "statement": "@demo.target has a recurring, publicly observable association with @demo.lead_b: a verified public follow edge plus repeated suggestion exposure across independent surfaces.",
+      "status": "INVESTIGATING",
+      "confidence": "MODERATE",
+      "supporting": [
+        "OBS-003",
+        "OBS-007",
+        "OBS-010",
+        "OBS-014",
+        "OBS-016"
+      ],
+      "contradicting": [],
+      "alternatives": [
+        "Both accounts belong to the same public community (for example a school cohort) rather than sharing a personal association.",
+        "The suggestion block reflects shared audience overlap rather than any direct relationship."
+      ]
+    },
+    {
+      "id": "HYP-002",
+      "statement": "One of the near-identical handles returned by search represents the same real-world entity as @demo.target.",
+      "status": "POSSIBLE",
+      "confidence": "LOW",
+      "supporting": [
+        "OBS-017"
+      ],
+      "contradicting": [],
+      "alternatives": [
+        "Handle collision between unrelated accounts.",
+        "A fan or impersonation account reusing the base handle."
+      ]
+    },
+    {
+      "id": "HYP-003",
+      "statement": "@demo.lead_d belongs to the same suggestion cluster as the three recurring leads.",
+      "status": "UNRESOLVED",
+      "confidence": "LOW",
+      "supporting": [
+        "OBS-005"
+      ],
+      "contradicting": [],
+      "alternatives": [
+        "Single-sweep appearance may be positional noise rather than a stable signal."
+      ]
+    }
+  ],
+  "leads": [
+    {
+      "id": "LEAD-001",
+      "account": "@demo.lead_a",
+      "base_signal": "SUGGESTED around @demo.target, bidirectional on a second surface",
+      "score": {
+        "recurrence": 2,
+        "mutual_count": 2,
+        "persistence": 3,
+        "multi_surface": 2,
+        "bidirectional": 1,
+        "corroboration": 3,
+        "total": 13
+      },
+      "quality": "HIGH_VALUE",
+      "threshold_met": true,
+      "investigated": true,
+      "reason": "Persistent across both sweeps, mutual count 4, present in both the target's and its own suggestion surface.",
+      "evidence": [
+        "OBS-002",
+        "OBS-006",
+        "OBS-009",
+        "OBS-012",
+        "OBS-013"
+      ]
+    },
+    {
+      "id": "LEAD-002",
+      "account": "@demo.lead_b",
+      "base_signal": "SUGGESTED around @demo.target with a verified public follow edge",
+      "score": {
+        "recurrence": 2,
+        "mutual_count": 1,
+        "persistence": 3,
+        "multi_surface": 2,
+        "bidirectional": 0,
+        "corroboration": 3,
+        "total": 11
+      },
+      "quality": "HIGH_VALUE",
+      "threshold_met": true,
+      "investigated": true,
+      "reason": "Recurring suggestion plus an independent direct observation that the target publicly follows this account.",
+      "evidence": [
+        "OBS-003",
+        "OBS-007",
+        "OBS-010",
+        "OBS-014",
+        "OBS-016"
+      ]
+    },
+    {
+      "id": "LEAD-003",
+      "account": "@demo.lead_c",
+      "base_signal": "SUGGESTED around @demo.target",
+      "score": {
+        "recurrence": 2,
+        "mutual_count": 1,
+        "persistence": 3,
+        "multi_surface": 1,
+        "bidirectional": 0,
+        "corroboration": 0,
+        "total": 7
+      },
+      "quality": "STRONG",
+      "threshold_met": true,
+      "investigated": true,
+      "reason": "Persistent across both sweeps with a low mutual count and no independent corroboration yet.",
+      "evidence": [
+        "OBS-004",
+        "OBS-008",
+        "OBS-011"
+      ]
+    },
+    {
+      "id": "LEAD-004",
+      "account": "@demo.lead_d",
+      "base_signal": "SUGGESTED around @demo.target on one sweep only",
+      "score": {
+        "recurrence": 1,
+        "mutual_count": 1,
+        "persistence": 2,
+        "multi_surface": 1,
+        "bidirectional": 0,
+        "corroboration": 0,
+        "total": 5
+      },
+      "quality": "MODERATE",
+      "threshold_met": false,
+      "investigated": true,
+      "reason": "Single-sweep appearance with mutual count 0; below the substantive-investigation threshold.",
+      "evidence": [
+        "OBS-005"
+      ]
+    }
+  ],
+  "unknowns": [
+    {
+      "id": "UNK-001",
+      "surface": "target followers",
+      "status": "NOT_AVAILABLE",
+      "reason": "Private account; list not observable from the authorized observer session.",
+      "related": [
+        "OBS-019"
+      ]
+    },
+    {
+      "id": "UNK-002",
+      "surface": "target following",
+      "status": "NOT_AVAILABLE",
+      "reason": "Private account; list not observable from the authorized observer session.",
+      "related": [
+        "OBS-019"
+      ]
+    },
+    {
+      "id": "UNK-003",
+      "surface": "web_profile_info external_url",
+      "status": "RATE_LIMITED",
+      "reason": "HTTP 429 on the profile API request.",
+      "related": [
+        "OBS-018"
+      ]
+    },
+    {
+      "id": "UNK-004",
+      "surface": "Accounts you may know",
+      "status": "NOT_OBSERVED",
+      "reason": "Deprioritized after the profile-page suggestion block produced sufficient leads."
+    }
+  ],
+  "conclusions": [
+    {
+      "id": "CON-001",
+      "statement": "A publicly observable association between @demo.target and @demo.lead_b is partially supported by a direct follow edge and recurring suggestion exposure.",
+      "status": "PARTIALLY_SUPPORTED",
+      "confidence": "MODERATE",
+      "hypotheses": [
+        "HYP-001"
+      ],
+      "notes": "Association only. No claim about the nature of the relationship or about either account's real-world identity."
+    },
+    {
+      "id": "CON-002",
+      "statement": "Entity resolution between @demo.target and the near-identical handle returned by search remains unresolved.",
+      "status": "UNRESOLVED",
+      "confidence": "LOW",
+      "hypotheses": [
+        "HYP-002"
+      ]
+    },
+    {
+      "id": "CON-003",
+      "statement": "Whether @demo.lead_d belongs to the recurring suggestion cluster remains unresolved.",
+      "status": "UNRESOLVED",
+      "confidence": "LOW",
+      "hypotheses": [
+        "HYP-003"
+      ]
+    }
+  ]
+}
