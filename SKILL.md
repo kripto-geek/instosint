@@ -39,63 +39,70 @@ Record setup result:
 - DEGRADED — CLI present but browser, daemon, or another capability is unavailable
 - FAILED — no browser layer at all
 
-## 0.2 Authentication — CAPABILITY-GATED
+## 0.2 Authentication & Session Binding — MANDATORY FOR PRIVATE TARGETS
 
-INSTOSINT MUST NOT stop for missing credentials, and MUST NOT assume vault tooling exists.
+Instagram strictly suppresses profile-page suggestion carousels, mutual indicators, and public connection blocks for logged-out (unauthenticated) viewers.
 
-1. Detect whether the harness exposes the vault tools:
-   - `browser_vault_list`
-   - `browser_vault_fill`
-   - `browser_vault_save_login`
-   - `browser_vault_enter_code`
-   These are Hermes MCP tools. They are NOT part of the `browser-use` CLI. If they are absent from the current toolset, record `vault_tools: ABSENT` and skip to step 4.
-2. If present, call `browser_vault_list`. If an Instagram login item bound to `https://www.instagram.com` exists, use it automatically via `browser_vault_fill`.
-3. If no vault item exists and the vault tools are present:
-   - Open `https://www.instagram.com/accounts/login/` in an isolated browser session named `instosint-<target_username>`.
-   - Call `browser_vault_save_login` to prompt the user to save credentials.
-   - If saved, fill and authenticate automatically.
-   - If declined, leave the browser open and prompt the user to complete manual login.
-   - Wait a bounded time for the session to become authenticated; if it does not, continue in public-only mode.
-4. Without vault tooling, open the login page in the isolated session and ask the user to complete login manually. Wait a bounded time. If the session is not authenticated, continue in public-only mode and record `NOT_AUTHENTICATED`.
-5. If 2FA is required:
-   - If the vault item has an authenticator key, call `browser_vault_enter_code` automatically.
-   - Otherwise, prompt the user to complete 2FA in their UI and wait a bounded time.
-6. Never type, log, or persist credentials yourself. Never write cookies or session state into an evidence record or artifact.
+**RULE: For any target with a private profile, an AUTHENTICATED session (even a brand-new zero-signal sock account with 0 followers and 0 following) is MANDATORY. The agent MUST NOT silently fall back to `PUBLIC_ONLY` mode and declare an empty investigation.**
 
-Record auth state:
-- AUTHENTICATED
-- PENDING_USER_LOGIN
-- NOT_AUTHENTICATED
+### Authentication & Session Discovery Protocol
 
-## 0.3 Investigation Modes — PERSISTENCE WITH RECORDED DEGRADATION
+1. **Step 1: Detect Active CDP Browser Session (Highest Priority)**:
+   - Check if an existing browser instance is running with remote debugging enabled (e.g., `http://127.0.0.1:9222` or Chrome CDP endpoint).
+   - If reachable, inspect the active session context. If Instagram is logged in (session cookies or navigation to `https://www.instagram.com/` shows a logged-in home/profile instead of login wall), **BIND IMMEDIATELY**:
+     ```text
+     auth_state: AUTHENTICATED
+     mode: FULL
+     session_type: CDP_ATTACHED (port 9222)
+     ```
+   - This was how successful full investigations (like `@lilyyy23___`) operated.
+
+2. **Step 2: Vault Tooling (Hermes / Harness MCP)**:
+   - If no active CDP session is bound, detect if `browser_vault_*` tools are available.
+   - If present, retrieve the Instagram credentials via `browser_vault_list` and authenticate automatically via `browser_vault_fill`.
+
+3. **Step 3: User Login Prompt (Interactive / Headed)**:
+   - If neither an active CDP session nor vault tooling is available:
+   - Launch an isolated browser session:
+     ```bash
+     chromium --remote-debugging-port=9222 --user-data-dir=/tmp/instosint-session
+     ```
+   - Open `https://www.instagram.com/accounts/login/`.
+   - **BLOCK and prompt the user**:
+     > *"Target @username is private. Instagram suppresses recommendation surfaces and outer-circle suggestions for unauthenticated viewers. Please log into an Instagram account (a clean zero-signal account with 0 followers/following is recommended) in the browser window to continue."*
+   - Wait until the user completes login and the URL/DOM confirms an authenticated state.
+
+4. **Step 4: Non-Interactive / Unauthenticated Handling for Private Targets**:
+   - If the target is **PUBLIC**: The agent may proceed in `PUBLIC_ONLY` mode to inspect public posts, bios, and captions.
+   - If the target is **PRIVATE**: The agent **MUST NOT** pretend the investigation is complete with "0 leads found". The agent MUST record:
+     ```text
+     State: BLOCKED_AUTH_REQUIRED
+     Reason: Target is private. Instagram recommendation surfaces are server-gated to authenticated sessions. Investigation cannot proceed without a logged-in observer account.
+     ```
+
+## 0.3 Investigation Modes
 
 INSTOSINT supports two modes:
 
-1. Full mode: browser automation + authenticated session available
-   - Inspect all observable surfaces
-   - Include suggestion surfaces, public posts, comments, images
+1. **Full mode (Required for Private Targets)**: Browser automation + authenticated session available.
+   - Inspects recommendation surfaces, suggestion blocks, mutuals, public posts, comments, visual cues.
+   - Mandatory for unlocking the Zero-Signal Observer exploit on private profiles.
 
-2. Public-only mode: used when no authenticated session exists after the capability checks in 0.1 and 0.2
-   - Inspect only surfaces reachable without a logged-in session
-   - Record each surface as OBSERVED or NOT_AVAILABLE
-   - Do NOT infer that unobserved surfaces are empty
-   - ALWAYS attempt browser automation first; public-only is the LAST resort
-
-The mode is determined by detected tools and session state, not by preference. Public-only mode is a recorded fallback, not a normal operating mode.
-
-Persistence applies only to allowed surfaces. A rate limit, login challenge, or access denial stops that surface: record it as `RATE_LIMITED` or `NOT_AVAILABLE` and continue with the remaining surfaces. Never retry through a block by rotating identity, obfuscating traffic, or evading detection.
+2. **Public-only mode (Permitted ONLY for Public Targets)**:
+   - Used when no authenticated session exists and the target profile is publicly accessible.
+   - If invoked on a private target without authentication, the agent must immediately flag `BLOCKED_AUTH_REQUIRED` rather than generating a false negative report.
 
 ## 0.4 Skill Entry Point
 
 When a user invokes INSTOSINT with a target:
 
 1. Run capability detection (§0.1)
-2. Run capability-gated authentication (§0.2)
-3. State the determined mode (FULL / PUBLIC_ONLY) and auth state (AUTHENTICATED / PENDING_USER_LOGIN / NOT_AUTHENTICATED)
-4. If setup failed completely, proceed in public-only mode and mark setup as FAILED
-5. Begin TARGET_SURFACE_CHECK
-6. NEVER stop for missing prerequisites. ALWAYS proceed with the capabilities that are actually available.
-7. If browser automation fails, try the documented recovery paths before falling back to public-only. Do not bypass access controls while doing so.
+2. Run session binding and authentication (§0.2):
+   - Check CDP port 9222 first.
+   - Check vault tools second.
+   - If target is private and session is unauthenticated, demand user login before proceeding.
+3. State the determined mode (`FULL` or `BLOCKED_AUTH_REQUIRED`).
+4. Begin `TARGET_SURFACE_CHECK`.
 
 ---
 

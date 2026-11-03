@@ -96,53 +96,39 @@ harness session mechanism.
 
 
 
-# 4. Vault Authentication Flow
+# 4. Authentication & Session Binding Protocol
 
-## 4.1 Credential Discovery
+## 4.0 CDP Session Auto-Detection (Primary)
+
+Before checking vault tools or prompting for manual login:
+1. Probe for an existing CDP browser daemon (e.g., `http://127.0.0.1:9222`).
+2. If reachable, inspect current cookies/tabs for `instagram.com`.
+3. If an authenticated session exists, bind immediately.
+4. This allows the investigator to run a browser in the background (`chromium --remote-debugging-port=9222`) logged into their zero-signal test account, and the agent attaches seamlessly.
+
+## 4.1 Vault Discovery (Hermes / Harness MCP)
 
 ```text
-1. Detect whether browser_vault_* tools are exposed.
-2. If absent: record vault_tools: ABSENT, use manual login in an isolated
-   session (4.2a), then continue.
+1. If no active CDP session is bound, detect whether browser_vault_* tools are exposed.
+2. If absent: proceed to 4.2a (Interactive Manual Login).
 3. If present: call browser_vault_list.
 4. Identify an Instagram login item bound to https://www.instagram.com.
-5. If found, record the handle and identifier/username.
-6. If not found, request user action:
-   - save credentials via browser_vault_save_login, or
-   - add the item through the Hermes vault UI
-7. If the user declines, continue in public-only mode.
+5. If found, use browser_vault_fill to authenticate automatically.
 ```
 
-Do not stop the investigation because a vault item is missing, and do not
-repeatedly re-trigger a login challenge.
+## 4.2a Manual Login & Private Target Gate
 
-## 4.2 Login Procedure
-
-```text
-1. Open https://www.instagram.com/accounts/login/ in an isolated session
-2. Fill the username/identifier field with the vault item's identifier
-3. Call browser_vault_fill with the Instagram vault handle
-   - this fills ONLY the password field
-   - do not type the password manually
-4. Submit the login form
-5. Wait for redirect or home load
-6. If a 2FA/verification screen appears:
-   - if the vault item has an authenticator key, call browser_vault_enter_code
-   - otherwise the user completes 2FA in their UI
-7. Validate session state before proceeding
-```
-
-## 4.2a Manual Login Fallback
-
-When vault tooling is unavailable:
+When neither an active CDP session nor vault tooling is available:
 
 ```text
-1. Open the login page in an isolated session.
-2. Ask the user to complete login and 2FA in that session.
-3. Wait a bounded time.
+1. Open the login page in an isolated session (e.g. chromium with --remote-debugging-port=9222).
+2. Prompt the user to log into their test/sock account.
+3. Wait for the user to complete login.
 4. Validate session state.
-5. If unauthenticated, continue in public-only mode and record
-   NOT_AUTHENTICATED.
+5. IF TARGET IS PRIVATE:
+   - An authenticated session is MANDATORY to observe suggestion surfaces.
+   - Do NOT fall back to public-only mode and declare an empty investigation.
+   - Halt with BLOCKED_AUTH_REQUIRED if the user declines or fails to log in.
 ```
 
 Never request, type, log, or store the password yourself.
