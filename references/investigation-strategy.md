@@ -255,36 +255,67 @@ Collect another generic follower with no connection to the hypothesis.
 
 ---
 
-# 13. Recursive Investigation
+# 13. Dynamic Traversal & Human-Like Reasoning
 
-A discovered entity may become the next investigation target.
+Human investigators don't mechanically crawl or stop when a target is private. They follow patterns, anomalies, and cultural/behavioral intuition.
 
-Example:
+### The Traversal Decision Tree
 
 ```text
-Target
-  ↓
-recurring account
-  ↓
-public post
-  ↓
-recurring event
-  ↓
-other public participants
-  ↓
-shared visual context
+               TARGET ACCOUNT (Private/Locked Profile)
+                                 │
+     ┌───────────────────────────┴───────────────────────────┐
+     ▼                                                       ▼
+[Target Profile Forensics]                      [Zero-Signal Suggestion Sweep]
+ - Bio monograms (LHM, initials)                 - Clean 0/0/0 observer account
+ - Emojis & dates (🔒, ❤️, 24.10)                - Filter high-follower noise (>10k)
+ - Profile pic accessories & scenery             - Flag micro-accounts (<50 followers)
+     └───────────────────────────┬───────────────────────────┘
+                                 │
+                         PRIORITY SUSPECT LEAD
+                                 │
+        ┌────────────────────────┴────────────────────────┐
+        ▼                                                 ▼
+[SUSPECT LEAD IS PUBLIC]                         [SUSPECT LEAD IS PRIVATE]
+  1. Profile & Bio Forensics                       1. Profile & Bio Forensics
+     - Bio links, mentions, tags                      - Name monograms / initials
+  2. Follower/Following Deep-Dive                     - Paired emojis / dates
+     - Search Target's main account                   - Symmetrical handles (his.forever)
+     - Search Target's SPAM/ALT account            2. Visual & Profile Picture
+     - Match aliases to real names                    - Split couple photos
+  3. Post Engagement Forensics                        - Cropped figures, matching gear
+     - LIKES: Does Target like >75% of posts?      3. Cascading Suggestion Hop
+     - COMMENTS: Flirty banter, "who took this?",     - Inspect this private lead's suggestions
+       teasing terms ("jiju/bhabhi"), hearts          - Does Target or circle appear back?
+     - TAGS: Tap-tags, location tags               4. Follower Metric Anomaly
+  4. Visual / Environmental Clues                     - 1 follower / 0 following:
+     - Shared accessories (earphones, watch)            Identify the single follower!
+     - Identical cafe/room background
+        └────────────────────────┬────────────────────────┘
+                                 │
+                  [Multi-Surface Triangulation]
+                                 │
+                  [Falsification & Alternatives]
+                                 │
+                  [Evidence-Backed Conclusion]
 ```
 
-Every hop must have a reason.
+### 13.1 Cultural & Behavioral Pattern Catalog
 
-Record:
-
-- parent entity
-- new entity
-- reason for traversal
-- expected information gain
-
-Avoid uncontrolled graph expansion.
+1. **Monograms & Initials**:
+   - In many regions (e.g. South Asia), romantic couples combine initials in bios:
+     `LHM` = Target "Lily" + Lead "Harshwardhan Mishra".
+   - Initials accompanied by `🔒`, `❤️`, `🧿`, or specific dates (`24.08`, `'02`).
+2. **Handle Symmetry**:
+   - Handles designed as pairs: `@his.forever.000` $\leftrightarrow$ `@her.always.111`.
+3. **The Spam / Finsta Connection**:
+   - Targets often keep their main account locked and private, but public friends follow their secondary "spam" account where candid photos, real names, and unfiltered interactions are exposed.
+4. **Engagement Asymmetry**:
+   - If a public suspect lead has modest engagement (10–20 likes per post) and the Target has liked nearly every single post, this reveals a high-intimacy ongoing connection.
+5. **Comment Section Linguistics**:
+   - Banter indicating closeness: "Who clicked this? 😏", "Soft launch", "Hard launch when?", or familial teasing ("Jiju", "Bhabhi", "Bro-in-law").
+6. **Physical & Visual Anchors**:
+   - A profile photo showing distinctive earphones, a specific watch, or a silhouette that matches a full-body public photo on another profile.
 
 ---
 

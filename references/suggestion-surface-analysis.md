@@ -37,6 +37,63 @@ Record the observation, not an assumed relationship.
 
 ---
 
+# 2a. Zero-Signal Observer Architecture (The Recommendation Flaw)
+
+Instagram surfaces suggested accounts using a composite recommendation function:
+
+$$\text{Suggestions} \approx f(\text{Viewer Graph}, \text{Target Graph}, \text{Device / Geo Context})$$
+
+When an investigator views a target using a personal Instagram account, the $\text{Viewer Graph}$ contaminates the results: suggestions are flooded with the investigator's own mutuals, synced phone contacts, and browsing history.
+
+### The Zero-Signal Advantage
+When the observer account is a "clean" sock puppet:
+- **0 Followers**
+- **0 Following**
+- **0 Synced Phone Contacts**
+- **0 Prior Engagement History**
+
+$$\text{Viewer Graph} = \emptyset \implies \text{Suggestions} \approx f(\text{Target Graph}, \text{Locale})$$
+
+Because the viewer has no social graph, Instagram **cannot calculate mutual connections with the viewer**. The algorithm is forced to fill the carousel using **pure target-side signals**:
+- High-frequency direct interactions on the target's side (DMs, close-friend lists, frequent profile visits).
+- Shared contact book or device-graph links on the target's side.
+- Tightly knit social clusters surrounding the target.
+
+### Device Graph Isolation Requirement
+To prevent Meta from linking the zero-signal observer account to the investigator's personal identity:
+- Always operate in an isolated browser environment (clean profile or incognito via CDP/Playwright).
+- Never sync phone contacts or use an existing personal device app where personal accounts are logged in.
+
+---
+
+# 2b. The Micro-Account Anomaly Rule
+
+Traditional OSINT naive heuristics mistakenly prioritize accounts with high follower counts or high mutual counts. In zero-signal target investigation, the logic is **inverted**:
+
+1. **High-Follower Accounts (>10,000 followers / verified)**:
+   - Usually generic algorithmic filler when Instagram lacks immediate local signals.
+   - **Classification: NOISE / LOW PRIORITY**.
+
+2. **Micro-Accounts (<50 followers / 0-1 following / locked alts)**:
+   - A tiny account with 10–20 followers has **zero statistical right** to be suggested based on popularity.
+   - It cannot be suggested due to viewer mutuals (viewer has 0).
+   - **Conclusion**: It surfaces purely because Meta's backend has detected extreme direct affinity with the target (e.g. mutual alt accounts, intimate circle, direct messaging, shared device graph).
+   - **Classification: CRITICAL PRIORITY-1 LEAD**.
+
+---
+
+# 2c. Cascading Suggestion Traversal (Private-to-Private Hop)
+
+When a suspect lead discovered in suggestions is ALSO a private/locked account:
+1. Do not terminate the lead.
+2. Navigate to that suspect private account from the zero-signal observer.
+3. Observe *its* suggestion carousel.
+4. **Bidirectional Corroboration**: If the original Target, or members of the Target's known circle, appear in this second account's suggestion carousel:
+   - The mutual affinity is algorithmically confirmed from both directions.
+   - Both accounts belong to the exact same tightly coupled micro-community.
+
+---
+
 # 3. Observable Features
 
 The suggestion block typically exposes multiple features per suggested account.

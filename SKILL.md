@@ -338,116 +338,141 @@ Recommendation surface: OBSERVED
 Result: INVESTIGATION CONTINUES AGGRESSIVELY
 ```
 
-## 7. Recommendation / Suggestion Surface
+## 7. The Zero-Signal Observer & Instagram Recommendation Flaw
 
-Recommendation behavior is a first-class lead source.
+Instagram surfaces suggested accounts based on a composite recommendation function:
 
-When Instagram visibly surfaces accounts around a target, record:
-- target
-- suggested account
-- whether mutual connections are shown
-- whether the suggestion is repeated
-- where the suggestion was observed
-- timestamp/context if available
+$$\text{Suggestions} \approx f(\text{Viewer Graph}, \text{Target Graph}, \text{Device / Geo Signals})$$
 
-Example observation:
+### The Algorithmic Flaw & Zero-Signal Advantage
 
-```text
-OBS-001
+1. **Viewer Contamination (The Personal Account Trap)**:
+   When an investigator uses a personal account, Instagram injects the investigator's mutuals, contacts, and browsing history. It becomes impossible to tell whether an account was suggested because the *target* knows them or because the *investigator* knows them.
 
-Target:
-private Instagram account
+2. **Zero-Signal Isolation (The Clean Sock Observer)**:
+   When the target is viewed from a clean observer account with:
+   - **0 Followers**
+   - **0 Following**
+   - **0 Synced Contacts**
+   - **0 Prior Interaction History**
 
-Observed surface:
-Instagram suggestion UI
+   $$\text{Viewer Graph} = \emptyset \implies \text{Suggestions} \approx f(\text{Target Graph}, \text{Locale})$$
 
-Observation:
-Account B was publicly surfaced as a suggested account around the target.
+   Because the viewer has zero graph data, Instagram **cannot calculate viewer mutuals**. The recommendation engine is forced to fill the suggestion carousel with **target-centric signals**:
+   - Accounts with intense direct engagement with the target (frequent DMs, profile visits, shared close circles).
+   - Target's device-level or contact-sync overlaps.
+   - Tightly-knit private clusters.
 
-Status:
-OBSERVED
-```
+3. **The Micro-Account Anomaly Rule**:
+   - High-follower accounts, influencers, or generic meme pages appearing in suggestions are **algorithmic noise** (fallback popularity).
+   - **A low-follower account (e.g. 5–50 followers, personal alt, or locked niche profile) appearing in a zero-signal session is a statistical anomaly.** It has zero algorithmic right to be suggested based on popularity. It is surfaced purely because Meta's backend associates it with extreme affinity to the target. This makes it an **immediate Priority-1 Lead**.
 
-Do NOT record:
+---
 
-```text
-Account B is the target's boyfriend.
-```
+## 8. Dynamic Human-Like Investigation Traversal Map
 
-That is an inference, not an observation.
-
-## 8. Recommendation Signals Are Leads
-
-A recommendation is not proof of:
-- friendship
-- romantic relationship
-- family relationship
-- offline contact
-- close relationship
-- identity
-
-Treat it as:
+Human investigators do not fill rigid forms; they follow anomalies, curiosities, cultural patterns, and multi-surface connections. INSTOSINT executes this dynamic reasoning map:
 
 ```text
-NETWORK_PROXIMITY_SIGNAL
+                  TARGET ACCOUNT (Private/Locked)
+                                ↓
+        [Phase 1: Target Profile Forensics (Bio, Initials, PFP)]
+                                ↓
+       [Phase 2: Zero-Signal Observer Suggestion Sweep & Triage]
+                                ↓
+          Filter: Drop generic influencers / high-follower noise
+                  Keep: Low-follower alts, shared keywords, anomalies
+                                ↓
+                        SELECT SUSPECT LEAD
+                                ↓
+         ┌──────────────────────┴──────────────────────┐
+         ▼                                             ▼
+ [LEAD IS PUBLIC]                              [LEAD IS PRIVATE]
+         ↓                                             ↓
+  1. Profile & Bio Forensics                    1. Profile & Bio Forensics
+     - Bio keywords, tags, external links          - Initials / Monograms (e.g. LHM)
+                                                   - Paired emojis (🔒, ❤️, 🧿)
+  2. Follower / Following Graph                    - Shared dates / anniversaries
+     - Does Target's main account follow?          - Complementary handles (his.forever)
+     - Does Target's SPAM/ALT account follow?
+     - Are there accounts matching aliases?     2. Visual & PFP Forensics
+                                                   - Split couple photos
+  3. Post & Reel Deep-Dive                         - Cropped companion / accessories
+     - LIKES: Does Target like every post?         - Matching cafe/room backdrop
+     - COMMENTS: Romantic banter, teasing,
+       "who took this?", "jiju/bhabhi", hearts  3. Cascading Suggestion Hop
+     - TAGS: Untagged mentions, photo tap-tags     - Check THIS private lead's suggestions
+                                                   - Does Target or circle appear back?
+  4. Visual / Scene Forensics
+     - Shared accessories (earphones, jewelry)  4. Follower Metric Anomaly
+     - Matching backgrounds / dates / angles       - 1 follower / 0 following:
+                                                     Identify the single follower!
+         └──────────────────────┬──────────────────────┘
+                                ↓
+            [Phase 3: Multi-Point Dynamic Synthesis]
+              - Connect the dots across surfaces
+              - Corroborate via independent anchors
+                                ↓
+            [Phase 4: Falsification & Alternative Hypotheses]
+              - Romantic partner vs. Close friend vs. Sibling vs. Alt
+                                ↓
+            [Phase 5: Evidence-Backed Conclusion]
 ```
 
-or:
+---
 
-```text
-INVESTIGATION_LEAD
-```
+## 9. Dynamic Reasoning Playbook (Thinking Like a Human)
 
-The exact recommendation algorithm is unknown unless explicitly documented by an authoritative source.
+A human investigator connects clues dynamically through cultural, contextual, and behavioral patterns—not just verbatim string matching:
 
-Do not claim to know why Instagram generated a recommendation.
+### 9.1 Cultural & Contextual Naming Conventions
+- **Monograms & Initials**:
+  - Example: Target "Lily" + Partner "Harshwardhan Mishra" $\rightarrow$ Bio displays `LHM` or `L ❤️ H` or `H 🔒 24.10`.
+  - Initials combined with dates (`'02`, `14.02`, `22/07`) often represent anniversaries or birthdays.
+- **Paired & Mirror Handles**:
+  - Symmetrical naming schemes: `@his.forever.xxxx` $\leftrightarrow$ `@her.always.yyyy`, `@lily.archive` $\leftrightarrow$ `@hv.archive`.
+- **Spam & Finsta (Secondary) Accounts**:
+  - Targets frequently operate secondary accounts (`@lilyy_spam`, `@notlily`, `@lilyprivvv`).
+  - While the main account is guarded, public friends often follow and tag the *spam* account, where unfiltered personal interactions occur.
 
-## 9. Non-Mutual Suggestions
+### 9.2 Engagement Asymmetry & Intensity
+- **The "Every Post" Like Pattern**:
+  - If a public lead has 20 posts with only 15 likes each, and the private Target has liked 18 of the 20 posts, this is an extreme affinity signal that outweighs hundreds of passive followers.
+- **Comment Section Linguistics**:
+  - Teasing and relationship markers: "Who clicked this? 😉", "Credit the photographer", "Hard launch when?", "Couple goals", or familial teasing terms (e.g. "Jiju", "Bhabhi" in South Asian contexts).
 
-Non-mutual suggested accounts can still be useful.
+### 9.3 Visual & Physical Clue Cross-Matching
+- **Accessory Anchors**:
+  - Distinctive accessories (specific white earphones, watch, ring, phone case, shoes, bracelet).
+- **Physical Clues**:
+  - Posture, hairstyle, tattoos, build, visible silhouettes.
+- **Environmental & Temporal Sync**:
+  - Same cafe table, same background art, same concert, posted on the exact same date or within 24 hours.
 
-For example:
+### 9.4 Cascading Suggestion Traversal (The Private-to-Private Hop)
+When a suspect lead is also private:
+1. Navigate to the suspect's profile from the zero-signal observer account.
+2. Observe the suspect's suggestion carousel.
+3. If the original Target, the Target's known friends, or the Target's spam account appear in the suspect's suggestions:
+   - This proves **bidirectional algorithmic affinity**.
+   - Meta's backend graph recognizes them as belonging to the exact same tightly coupled micro-community.
 
-```text
-Target
-  ↓
-Suggested Account B
-```
+---
 
-even when:
+## 10. Lead Prioritization & Scoring Rule
 
-```text
-Target ↛ follows B
-B ↛ follows Target
-```
+Leads are scored by **information gain and affinity anomaly**, not raw popularity:
 
-This may still justify investigating Account B as a lead if the suggestion is actually observable.
-But:
-
-```text
-suggestion ≠ relationship
-```
-
-The purpose is to investigate the suggested account's public context.
-
-## 10. Recommendation Recurrence
-
-If the same account is repeatedly surfaced around the target, record the recurrence.
-
-Example:
-
-```text
-OBS-001:
-Account B appeared in the suggestion surface.
-
-OBS-002:
-Account B appeared again in a later observation.
-
-OBS-003:
-Account B remained associated with the same target context.
-```
-
-Derived relationship:
+| Lead Signal | Priority Weight | Why |
+| :--- | :--- | :--- |
+| **Micro-account (<50 followers) in zero-signal suggestions** | **CRITICAL (+5)** | Zero popularity bias; exists solely due to backend Target affinity |
+| **Target's main or spam account in follower list** | **CRITICAL (+5)** | Direct network anchor |
+| **High like consistency (>75% of public posts liked by Target)** | **HIGH (+4)** | Active, ongoing personal engagement |
+| **Matching initials / monogram / paired handle** | **HIGH (+4)** | Explicit symbolic connection |
+| **Matching visual cue (earphones, jewelry, backdrop)** | **HIGH (+4)** | Physical world corroboration |
+| **Bidirectional suggestion appearance** | **HIGH (+4)** | Algorithmic mutual cluster verification |
+| **Shared location / event / date** | **MODERATE (+3)** | Temporal/spatial co-presence |
+| **Generic high-follower (>10k) account** | **NOISE (-5)** | Algorithmic fallback filler; deprioritize |
 
 ```text
 REL-001:
